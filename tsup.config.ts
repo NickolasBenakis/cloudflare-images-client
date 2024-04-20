@@ -8,5 +8,5 @@ export default defineConfig({
 	sourcemap: true,
 	clean: true,
 	replaceNodeEnv: true,
-	external: ["path", "fs/promises", "form-data", "dotenv"],
+	external: ["path", "fs/promises", "form-data", "dotenv", "@biomejs/biome"],
 });
