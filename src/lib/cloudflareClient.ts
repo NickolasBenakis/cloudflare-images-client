@@ -40,9 +40,6 @@ class CloudflareClient {
 	}: uploadImageFromUrlProps) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
-		console.log("accountId", this.accountId);
-		console.log("apiToken", this.apiToken);
-
 		const formData = new FormData();
 		formData.append("url", imageUrl);
 		formData.append("metadata", JSON.stringify(metadata));
