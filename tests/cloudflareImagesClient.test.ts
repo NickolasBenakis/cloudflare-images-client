@@ -1,10 +1,13 @@
 import { describe } from "node:test";
 import path from "path";
 import { expect, test } from "vitest";
-import CloudflareClient from "../src/lib/cloudflareClient";
+import { CloudflareImagesClient } from "../src/index";
 
 describe("Cloudflare Client", async () => {
-	const cloudflareClient = new CloudflareClient();
+	const cloudflareClient = new CloudflareImagesClient({
+		accountId: process.env.CLOUDFLARE_ACCOUNT_ID || "",
+		apiToken: process.env.CLOUDFLARE_API_TOKEN || "",
+	});
 	let uploadedTestImageId = "";
 
 	describe("uploadImage From Url", async () => {
@@ -104,27 +107,27 @@ describe("Cloudflare Client", async () => {
 		});
 	});
 
-	describe.skip("Upload Image from file", () => {
-		test.skip("uploadImage From File", async () => {
-			const paola = path.join(__dirname, "images", "test.png");
-			const paolablob = new Blob([paola]);
-			console.log("paola", paola);
-			const response = await cloudflareClient.uploadImageFromFile({
-				filePath: paola,
-				metadata: {},
-			});
+	// describe.skip("Upload Image from file", () => {
+	// 	test.skip("uploadImage From File", async () => {
+	// 		const paola = path.join(__dirname, "images", "test.png");
+	// 		const paolablob = new Blob([paola]);
+	// 		console.log("paola", paola);
+	// 		const response = await cloudflareClient.uploadImageFromFile({
+	// 			filePath: paola,
+	// 			metadata: {},
+	// 		});
 
-			expect(response.errors).toEqual([]);
-			expect(response.messages).toEqual([]);
-			expect(response.success).toBe(true);
-			expect(response.result.filename).toBeTypeOf("string");
-			expect(response.result.id).toBeTypeOf("string");
-			expect(response.result.meta).toBeTypeOf("object");
-			expect(response.result.requireSignedURLs).toBe(false);
-			expect(response.result.uploaded).toBeTypeOf("string");
-			expect(response.result.variants.length).toBeGreaterThan(0);
-		});
-	});
+	// 		expect(response.errors).toEqual([]);
+	// 		expect(response.messages).toEqual([]);
+	// 		expect(response.success).toBe(true);
+	// 		expect(response.result.filename).toBeTypeOf("string");
+	// 		expect(response.result.id).toBeTypeOf("string");
+	// 		expect(response.result.meta).toBeTypeOf("object");
+	// 		expect(response.result.requireSignedURLs).toBe(false);
+	// 		expect(response.result.uploaded).toBeTypeOf("string");
+	// 		expect(response.result.variants.length).toBeGreaterThan(0);
+	// 	});
+	// });
 
 	describe("Update Image", async () => {
 		test("success response", async () => {
