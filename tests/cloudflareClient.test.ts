@@ -42,3 +42,27 @@ describe("get Image statistics", async () => {
 		expect(response.result.count.current).toBeTypeOf("number");
 	});
 });
+
+describe("get Image details", async () => {
+	test("success response", async () => {
+		const response = await cloudflareClient.getImageDetails(
+			process.env.CLOUDFLARE_TEST_IMAGE_ID || "",
+		);
+
+		expect(response.errors).toEqual([]);
+		expect(response.messages).toEqual([]);
+		expect(response.success).toBe(true);
+		expect(response.result.filename).toBeTypeOf("string");
+		expect(response.result.id).toBeTypeOf("string");
+		expect(response.result.meta).toEqual({});
+		expect(response.result.requireSignedURLs).toBe(false);
+		expect(response.result.uploaded).toBeTypeOf("string");
+		expect(response.result.variants.length).toBeGreaterThan(0);
+	});
+
+	test("error response with no image url", async () => {
+		const response = await cloudflareClient.getImageDetails("");
+
+		expect(response.errors.length).toBeGreaterThan(0);
+	});
+});

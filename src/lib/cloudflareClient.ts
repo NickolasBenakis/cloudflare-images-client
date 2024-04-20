@@ -11,7 +11,7 @@ interface uploadImageFromFileProps extends uploadImageProps {
 	file: File;
 }
 
-interface CloudflareUploadImageResponse {
+interface CloudflareImageResponse {
 	errors: string[];
 	messages: string[];
 	result: {
@@ -21,6 +21,18 @@ interface CloudflareUploadImageResponse {
 		requireSignedURLs: boolean;
 		uploaded: string;
 		variants: string[];
+	};
+	success: boolean;
+}
+
+interface CloudflareImageStatsResponse {
+	errors: string[];
+	messages: string[];
+	result: {
+		count: {
+			allowed: number;
+			current: number;
+		};
 	};
 	success: boolean;
 }
@@ -54,7 +66,7 @@ class CloudflareClient {
 				body: formData,
 			});
 
-			const jsonResponse: CloudflareUploadImageResponse = await response.json();
+			const jsonResponse: CloudflareImageResponse = await response.json();
 
 			return jsonResponse;
 		} catch (error) {
@@ -74,11 +86,30 @@ class CloudflareClient {
 				},
 			});
 
-			const jsonResponse = await response.json();
+			const jsonResponse: CloudflareImageStatsResponse = await response.json();
 			return jsonResponse;
 		} catch (error) {
 			console.log("error", error);
 			throw new Error("Error getting image statistics");
+		}
+	}
+
+	async getImageDetails(imageId: string) {
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1/${imageId}`;
+
+		try {
+			const response = await fetch(endpoint, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+			});
+
+			const jsonResponse: CloudflareImageResponse = await response.json();
+			return jsonResponse;
+		} catch (error) {
+			console.log("error", error);
+			throw new Error("Error getting image details");
 		}
 	}
 }
