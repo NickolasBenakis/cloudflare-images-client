@@ -1,5 +1,10 @@
 import { readFile } from "fs/promises";
 
+interface CloudflareApiResponse {
+	errors: { code: string; message: string }[];
+	messages: { code: string; message: string }[];
+	success: boolean;
+}
 interface UploadImageProps {
 	metadata?: Record<string, unknown>;
 	requireSignedURLs?: boolean;
@@ -13,26 +18,24 @@ interface UploadImageFromFileProps extends UploadImageProps {
 	filePath: string;
 }
 
-interface CloudflareDeleteImageResponse {
-	errors: string[];
-	messages: string[];
+interface CloudflareDeleteImageResponse extends CloudflareApiResponse {
 	result: Record<string, unknown>;
-	success: boolean;
 }
 
-interface CloudflareImagesResponse {
-	success: boolean;
-	errors: string[];
-	messages: string[];
+interface CloudflareImagesResponse extends CloudflareApiResponse {
 	result?: {
 		continuation_token: string;
 		images: CloudflareImageResponse["result"][];
 	};
 }
 
-interface CloudflareImageResponse {
-	errors: string[];
-	messages: string[];
+interface CloudflareListImagesQueryParams {
+	continuationToken?: string | null;
+	per_page?: number;
+	sort_order?: "asc" | "desc";
+}
+
+interface CloudflareImageResponse extends CloudflareApiResponse {
 	result: {
 		filename: string;
 		id: string;
@@ -41,19 +44,15 @@ interface CloudflareImageResponse {
 		uploaded: string;
 		variants: string[];
 	};
-	success: boolean;
 }
 
-interface CloudflareImageStatsResponse {
-	errors: string[];
-	messages: string[];
+interface CloudflareImageStatsResponse extends CloudflareApiResponse {
 	result: {
 		count: {
 			allowed: number;
 			current: number;
 		};
 	};
-	success: boolean;
 }
 
 interface ICloudflareClient {
@@ -66,7 +65,11 @@ interface ICloudflareClient {
 	getImageStatistics: () => Promise<CloudflareImageStatsResponse>;
 	getImageDetails: (imageId: string) => Promise<CloudflareImageResponse>;
 	getImageAsBlob: (imageId: string) => Promise<Blob>;
-	listImages: () => Promise<CloudflareImagesResponse>;
+	listImages: ({
+		continuationToken,
+		per_page,
+		sort_order,
+	}: CloudflareListImagesQueryParams) => Promise<CloudflareImagesResponse>;
 	updateImage: (
 		imageId: string,
 		imageProps: UploadImageProps,
@@ -202,8 +205,18 @@ class CloudflareClient implements ICloudflareClient {
 		}
 	}
 
-	async listImages() {
-		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v2`;
+	async listImages(params?: CloudflareListImagesQueryParams) {
+		const {
+			continuationToken = null,
+			per_page = 1000,
+			sort_order = "desc",
+		} = params || {};
+
+		const endpoint = `${this.baseUrl}/accounts/${
+			this.accountId
+		}/images/v2?per_page=${per_page}&sort_order=${sort_order}${
+			continuationToken ? `&continuation_token=${continuationToken}` : ""
+		}`;
 
 		try {
 			const response = await fetch(endpoint, {

@@ -90,7 +90,7 @@ describe("Cloudflare Client", async () => {
 	});
 
 	describe("list images", async () => {
-		test("success response", async () => {
+		test("success response without query params", async () => {
 			const response = await cloudflareClient.listImages();
 
 			expect(response.errors).toEqual([]);
