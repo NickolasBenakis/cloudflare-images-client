@@ -15,7 +15,7 @@ export interface UploadImageProps {
 }
 
 export interface UploadImageFromUrlProps extends UploadImageProps {
-	imageUrl: string;
+	url: string;
 }
 
 export interface UploadImageFromFileProps extends UploadImageProps {
@@ -94,14 +94,14 @@ class CloudflareImagesClient implements ICloudflareClient {
 	}
 
 	async uploadImageFromUrl({
-		imageUrl,
-		metadata,
-		requireSignedURLs,
+		url,
+		metadata = {},
+		requireSignedURLs = false,
 	}: UploadImageFromUrlProps) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
 		const formData = new FormData();
-		formData.append("url", imageUrl);
+		formData.append("url", url);
 		formData.append("metadata", JSON.stringify(metadata));
 		formData.append("requireSignedURLs", JSON.stringify(requireSignedURLs));
 

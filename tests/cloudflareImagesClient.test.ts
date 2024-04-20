@@ -12,9 +12,7 @@ describe("Cloudflare Client", async () => {
 	describe("uploadImage From Url", async () => {
 		test("success response", async () => {
 			const response = await cloudflareClient.uploadImageFromUrl({
-				imageUrl:
-					"https://images.squarespace-cdn.com/content/v1/60f1a490a90ed8713c41c36c/1629223610791-LCBJG5451DRKX4WOB4SP/37-design-powers-url-structure.jpeg",
-				metadata: {},
+				url: "https://images.squarespace-cdn.com/content/v1/60f1a490a90ed8713c41c36c/1629223610791-LCBJG5451DRKX4WOB4SP/37-design-powers-url-structure.jpeg",
 			});
 
 			expect(response.errors).toEqual([]);
@@ -32,7 +30,7 @@ describe("Cloudflare Client", async () => {
 
 		test("error response", async () => {
 			const response = await cloudflareClient.uploadImageFromUrl({
-				imageUrl: "",
+				url: "",
 				metadata: {},
 			});
 
