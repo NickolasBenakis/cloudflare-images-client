@@ -1,3 +1,5 @@
+[![Node.js CI](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/node.js.yml/badge.svg)](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/node.js.yml)
+
 # cloudflare-images-client
 
 This repository is a complete wrapper around the Cloudflare Images API. It provides a simple and efficient way to interact with the API, allowing you to manage your images on Cloudflare with ease.
