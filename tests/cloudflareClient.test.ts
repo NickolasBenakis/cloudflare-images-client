@@ -30,3 +30,15 @@ describe("uploadImage From Url", async () => {
 		expect(response.errors.length).toBeGreaterThan(0);
 	});
 });
+
+describe("get Image statistics", async () => {
+	test("success response", async () => {
+		const response = await cloudflareClient.getImageStatistics();
+
+		expect(response.errors).toEqual([]);
+		expect(response.messages).toEqual([]);
+		expect(response.success).toBe(true);
+		expect(response.result.count.allowed).toBeTypeOf("number");
+		expect(response.result.count.current).toBeTypeOf("number");
+	});
+});

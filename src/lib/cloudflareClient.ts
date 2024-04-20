@@ -62,6 +62,25 @@ class CloudflareClient {
 			throw new Error("Error uploading image from URL");
 		}
 	}
+
+	async getImageStatistics() {
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1/stats`;
+
+		try {
+			const response = await fetch(endpoint, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+			});
+
+			const jsonResponse = await response.json();
+			return jsonResponse;
+		} catch (error) {
+			console.log("error", error);
+			throw new Error("Error getting image statistics");
+		}
+	}
 }
 
 const cloudflareClient = new CloudflareClient();
