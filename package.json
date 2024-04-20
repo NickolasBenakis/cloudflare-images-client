@@ -31,10 +31,6 @@
 			"name": "Dimitris Pattas",
 			"email": "jane.smith@example.com",
 			"url": "https://github.com/DimitrisPattas"
-		},
-		{
-			"name": "Alice",
-			"email": "alice@example.com"
 		}
 	],
 	"license": "MIT",
