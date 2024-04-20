@@ -1,4 +1,4 @@
-import { createReadStream } from 'fs';
+import { createReadStream } from "fs";
 
 interface uploadImageProps {
 	metadata?: Record<string, unknown>;
@@ -171,23 +171,24 @@ class CloudflareClient {
 
 	async uploadImageFromFile({ filePath, metadata }: uploadImageFromFileProps) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
-	
+
 		try {
-			console.log('filePath', filePath)
+			console.log("filePath", filePath);
 			const formData = new FormData();
 			formData.append("file", JSON.stringify(createReadStream(filePath)));
-	
+
 			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: {
-					'Content-Type': 'multipart/form-data; boundary=---011000010111000001101001',
+					"Content-Type":
+						"multipart/form-data; boundary=---011000010111000001101001",
 					Authorization: `Bearer ${this.apiToken}`,
 				},
 				body: formData,
 			});
-	
-			const jsonResponse: CloudflareImagesResponse = await response.json();
-	
+
+			const jsonResponse: CloudflareImageResponse = await response.json();
+
 			return jsonResponse;
 		} catch (error) {
 			console.log("error", error);
