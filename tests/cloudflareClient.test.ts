@@ -154,9 +154,10 @@ describe("Cloudflare Client", async () => {
 		});
 	});
 
-	describe("Delete Image", async () => {
+	describe("Delete  One Image", async () => {
 		test("success response", async () => {
-			const response = await cloudflareClient.deleteImage(uploadedTestImageId);
+			const response =
+				await cloudflareClient.deleteOneImage(uploadedTestImageId);
 
 			expect(response.errors).toEqual([]);
 			expect(response.messages).toEqual([]);
@@ -164,7 +165,7 @@ describe("Cloudflare Client", async () => {
 		});
 
 		test("error response with no image url", async () => {
-			const response = await cloudflareClient.deleteImage("");
+			const response = await cloudflareClient.deleteOneImage("");
 
 			expect(response.errors.length).toBeGreaterThan(0);
 		});

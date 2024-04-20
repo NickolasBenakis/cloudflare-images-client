@@ -74,7 +74,11 @@ interface ICloudflareClient {
 		imageId: string,
 		imageProps: UploadImageProps,
 	) => Promise<CloudflareImageResponse>;
-	deleteImage: (imageId: string) => Promise<CloudflareDeleteImageResponse>;
+	deleteOneImage: (imageId: string) => Promise<CloudflareDeleteImageResponse>;
+	deleteManyImages: (
+		imageIds: string[],
+	) => Promise<CloudflareDeleteImageResponse[]>;
+	removeDuplicateImagefilenames: () => Promise<void>;
 }
 class CloudflareClient implements ICloudflareClient {
 	private baseUrl = "https://api.cloudflare.com/client/v4";
@@ -258,7 +262,7 @@ class CloudflareClient implements ICloudflareClient {
 		}
 	}
 
-	async deleteImage(imageId: string) {
+	async deleteOneImage(imageId: string) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1/${imageId}`;
 
 		try {
@@ -276,6 +280,53 @@ class CloudflareClient implements ICloudflareClient {
 			console.error("error", error);
 			throw new Error("Error deleting image");
 		}
+	}
+
+	async deleteManyImages(imageIds: string[]) {
+		const results = [];
+		for (const imageId of imageIds) {
+			try {
+				const result = await this.deleteOneImage(imageId);
+				results.push(result);
+			} catch (error) {
+				results.push(error as CloudflareDeleteImageResponse);
+			}
+		}
+
+		return results;
+	}
+
+	async removeDuplicateImagefilenames() {
+		const cloudflareImages = await this.listImages();
+		const allCloudflareImageIds = cloudflareImages.result?.images?.map(
+			(image) => image?.id as string,
+		);
+		const cloudflareImagesByFilename =
+			cloudflareImages.result?.images?.reduce(
+				(
+					acc: Record<string, CloudflareImageResponse["result"]>,
+					image: CloudflareImageResponse["result"],
+				) => {
+					acc[image.filename] = image;
+					return acc;
+				},
+				{} as Record<string, CloudflareImageResponse["result"]>,
+			) || {};
+
+		const uniqueCloudflareImageIds = Object.values(
+			cloudflareImagesByFilename,
+		).map((image: CloudflareImageResponse["result"]) => image.id as string);
+
+		const imageUrlsToDelete = allCloudflareImageIds?.filter((id: string) => {
+			return !uniqueCloudflareImageIds?.includes?.(id);
+		});
+
+		if (!imageUrlsToDelete?.length) {
+			console.info("all cloudflare urls are unique", true);
+			return;
+		}
+
+		await this.deleteManyImages(imageUrlsToDelete);
 	}
 }
 
