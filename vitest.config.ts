@@ -5,5 +5,9 @@ export default defineConfig({
 	test: {
 		// setupFiles: ["./setupVitest.js"],
 		globals: true,
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "json", "html"],
+		},
 	},
 });
