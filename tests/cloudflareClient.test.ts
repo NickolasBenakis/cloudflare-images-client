@@ -1,5 +1,5 @@
 import { describe } from "node:test";
-import { expect, it, test } from "vitest";
+import { expect, test } from "vitest";
 import { cloudflareClient } from "../src/index";
 
 describe.skip("uploadImage From Url", async () => {
@@ -83,5 +83,18 @@ describe("get Image blob", async () => {
 		} catch (error) {
 			expect(Error(error).message).toEqual("Error: Image ID is required");
 		}
+	});
+});
+
+describe("list images", async () => {
+	test("success response", async () => {
+		const response = await cloudflareClient.listImages();
+
+		expect(response.errors).toEqual([]);
+		expect(response.messages).toEqual([]);
+		expect(response.success).toBe(true);
+		expect(response.result?.continuation_token).oneOf(["string", null]);
+		expect(response.result?.images).toBeTypeOf("object");
+		expect(response.result?.images.length).toBeGreaterThanOrEqual(0);
 	});
 });

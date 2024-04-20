@@ -11,6 +11,16 @@ interface uploadImageFromFileProps extends uploadImageProps {
 	file: File;
 }
 
+interface CloudflareImagesResponse {
+	success: boolean;
+	errors: string[];
+	messages: string[];
+	result?: {
+		continuation_token: string;
+		images: CloudflareImageResponse["result"][];
+	};
+}
+
 interface CloudflareImageResponse {
 	errors: string[];
 	messages: string[];
@@ -70,7 +80,7 @@ class CloudflareClient {
 
 			return jsonResponse;
 		} catch (error) {
-			console.log("error", error);
+			console.error("error", error);
 			throw new Error("Error uploading image from URL");
 		}
 	}
@@ -89,7 +99,7 @@ class CloudflareClient {
 			const jsonResponse: CloudflareImageStatsResponse = await response.json();
 			return jsonResponse;
 		} catch (error) {
-			console.log("error", error);
+			console.error("error", error);
 			throw new Error("Error getting image statistics");
 		}
 	}
@@ -108,7 +118,7 @@ class CloudflareClient {
 			const jsonResponse: CloudflareImageResponse = await response.json();
 			return jsonResponse;
 		} catch (error) {
-			console.log("error", error);
+			console.error("error", error);
 			throw new Error("Error getting image details");
 		}
 	}
@@ -131,8 +141,29 @@ class CloudflareClient {
 			const blob = await response.blob();
 			return blob;
 		} catch (error) {
-			console.log("error", error);
+			console.error("error", error);
 			throw new Error("Error getting image blob");
+		}
+	}
+
+	async listImages() {
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v2`;
+
+		try {
+			const response = await fetch(endpoint, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+			});
+
+			const jsonResponse: CloudflareImagesResponse = await response.json();
+
+			return jsonResponse;
+		} catch (error) {
+			console.error("error", error);
+			throw new Error("Error getting list images");
 		}
 	}
 }
