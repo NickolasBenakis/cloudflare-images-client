@@ -89,9 +89,8 @@ class CloudflareImagesClient implements ICloudflareClient {
 	private readonly accountId: string;
 	private readonly apiToken: string;
 	constructor(options?: CloudflareClientOptions) {
-		this.accountId =
-			options?.accountId || process.env.CLOUDFLARE_ACCOUNT_ID || "";
-		this.apiToken = options?.apiToken || process.env.CLOUDFLARE_API_TOKEN || "";
+		this.accountId = options?.accountId || "";
+		this.apiToken = options?.apiToken || "";
 	}
 
 	async uploadImageFromUrl({

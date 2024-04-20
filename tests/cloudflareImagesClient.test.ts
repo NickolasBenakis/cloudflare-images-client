@@ -1,5 +1,6 @@
 import { describe } from "node:test";
 import path from "path";
+import "dotenv/config";
 import { expect, test } from "vitest";
 import { CloudflareImagesClient } from "../src/index";
 
