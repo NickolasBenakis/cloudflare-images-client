@@ -33,7 +33,11 @@ class CloudflareClient {
 		this.apiToken = process.env.CLOUDFLARE_API_TOKEN || "";
 	}
 
-	async uploadImageFromUrl({ imageUrl, metadata }: uploadImageFromUrlProps) {
+	async uploadImageFromUrl({
+		imageUrl,
+		metadata,
+		requireSignedURLs,
+	}: uploadImageFromUrlProps) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
 		console.log("accountId", this.accountId);
@@ -42,7 +46,7 @@ class CloudflareClient {
 		const formData = new FormData();
 		formData.append("url", imageUrl);
 		formData.append("metadata", JSON.stringify(metadata));
-		formData.append("requireSignedURLs", "false");
+		formData.append("requireSignedURLs", JSON.stringify(requireSignedURLs));
 
 		try {
 			const response = await fetch(endpoint, {

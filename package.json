@@ -5,10 +5,11 @@
 	"main": "src/index",
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
+		"dev": "tsc src/index.ts",
 		"build": "tsc && vite build",
 		"preview": "vite preview",
-		"test": "vitest"
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"devDependencies": {
 		"@types/node": "20.0.0",
