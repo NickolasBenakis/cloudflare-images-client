@@ -1,6 +1,7 @@
 import { describe } from "node:test";
 import { expect, test } from "vitest";
 import { cloudflareClient } from "../src/index";
+import path from "path";
 
 describe.skip("uploadImage From Url", async () => {
 	test("success response", async () => {
@@ -97,4 +98,21 @@ describe("list images", async () => {
 		expect(response.result?.images).toBeTypeOf("object");
 		expect(response.result?.images.length).toBeGreaterThanOrEqual(0);
 	});
+});
+
+test("uploadImage From File", async () => {
+	const response = await cloudflareClient.uploadImageFromFile({
+		filePath: path.join(__dirname, 'images', 'test.png'),
+		metadata: {},
+	});
+
+	expect(response.errors).toEqual([]);
+	expect(response.messages).toEqual([]);
+	expect(response.success).toBe(true);
+	expect(response.result.filename).toBeTypeOf("string");
+	expect(response.result.id).toBeTypeOf("string");
+	expect(response.result.meta).toEqual({});
+	expect(response.result.requireSignedURLs).toBe(false);
+	expect(response.result.uploaded).toBeTypeOf("string");
+	expect(response.result.variants.length).toBeGreaterThan(0);
 });

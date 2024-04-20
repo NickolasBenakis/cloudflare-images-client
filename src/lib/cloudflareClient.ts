@@ -1,3 +1,5 @@
+import { createReadStream } from 'fs';
+
 interface uploadImageProps {
 	metadata?: Record<string, unknown>;
 	requireSignedURLs?: boolean;
@@ -8,7 +10,7 @@ interface uploadImageFromUrlProps extends uploadImageProps {
 }
 
 interface uploadImageFromFileProps extends uploadImageProps {
-	file: File;
+	filePath: string;
 }
 
 interface CloudflareImagesResponse {
@@ -164,6 +166,32 @@ class CloudflareClient {
 		} catch (error) {
 			console.error("error", error);
 			throw new Error("Error getting list images");
+		}
+	}
+
+	async uploadImageFromFile({ filePath, metadata }: uploadImageFromFileProps) {
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
+	
+		try {
+			console.log('filePath', filePath)
+			const formData = new FormData();
+			formData.append("file", JSON.stringify(createReadStream(filePath)));
+	
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					'Content-Type': 'multipart/form-data; boundary=---011000010111000001101001',
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+				body: formData,
+			});
+	
+			const jsonResponse: CloudflareImagesResponse = await response.json();
+	
+			return jsonResponse;
+		} catch (error) {
+			console.log("error", error);
+			throw new Error("Error uploading image from File");
 		}
 	}
 }
