@@ -1,59 +1,14 @@
 import { readFile } from "fs/promises";
-
-interface CloudflareApiResponse {
-	errors: { code: string; message: string }[];
-	messages: { code: string; message: string }[];
-	success: boolean;
-}
-interface UploadImageProps {
-	metadata?: Record<string, unknown>;
-	requireSignedURLs?: boolean;
-}
-
-interface UploadImageFromUrlProps extends UploadImageProps {
-	imageUrl: string;
-}
-
-interface UploadImageFromFileProps extends UploadImageProps {
-	filePath: string;
-}
-
-interface CloudflareDeleteImageResponse extends CloudflareApiResponse {
-	result: Record<string, unknown>;
-}
-
-interface CloudflareImagesResponse extends CloudflareApiResponse {
-	result?: {
-		continuation_token: string;
-		images: CloudflareImageResponse["result"][];
-	};
-}
-
-interface CloudflareListImagesQueryParams {
-	continuationToken?: string | null;
-	per_page?: number;
-	sort_order?: "asc" | "desc";
-}
-
-interface CloudflareImageResponse extends CloudflareApiResponse {
-	result: {
-		filename: string;
-		id: string;
-		meta: Record<string, unknown>;
-		requireSignedURLs: boolean;
-		uploaded: string;
-		variants: string[];
-	};
-}
-
-interface CloudflareImageStatsResponse extends CloudflareApiResponse {
-	result: {
-		count: {
-			allowed: number;
-			current: number;
-		};
-	};
-}
+import {
+	CloudflareDeleteImageResponse,
+	CloudflareImageResponse,
+	CloudflareImageStatsResponse,
+	CloudflareImagesResponse,
+	CloudflareListImagesQueryParams,
+	UploadImageFromFileProps,
+	UploadImageFromUrlProps,
+	UploadImageProps,
+} from "../@types/cloudflare-images";
 
 interface ICloudflareClient {
 	uploadImageFromUrl: (
