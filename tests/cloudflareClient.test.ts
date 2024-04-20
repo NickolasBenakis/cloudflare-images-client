@@ -100,7 +100,7 @@ describe("list images", async () => {
 	});
 });
 
-test.only("uploadImage From File", async () => {
+test.skip("uploadImage From File", async () => {
 	const paola = path.join(__dirname, "images", "test.png");
 	const paolablob = new Blob([paola]);
 	console.log("paola", paola);

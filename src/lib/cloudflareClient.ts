@@ -87,6 +87,35 @@ class CloudflareClient {
 		}
 	}
 
+	async uploadImageFromFile({ filePath, metadata }: uploadImageFromFileProps) {
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
+
+		try {
+			const file = (await readFile(filePath)) as unknown as Blob;
+			const blob = new Blob([file], { type: "image/png" });
+			const formData = new FormData();
+			formData.append("file", blob, "nikos");
+			formData.append("metadata", JSON.stringify(metadata));
+
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					"Content-Type":
+						"multipart/form-data; boundary=---011000010111000001101001",
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+				body: formData,
+			});
+
+			const jsonResponse: CloudflareImageResponse = await response.json();
+
+			return jsonResponse;
+		} catch (error) {
+			console.log("error", error);
+			throw new Error("Error uploading image from File");
+		}
+	}
+
 	async getImageStatistics() {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1/stats`;
 
@@ -166,35 +195,6 @@ class CloudflareClient {
 		} catch (error) {
 			console.error("error", error);
 			throw new Error("Error getting list images");
-		}
-	}
-
-	async uploadImageFromFile({ filePath, metadata }: uploadImageFromFileProps) {
-		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
-
-		try {
-			const file = (await readFile(filePath)) as unknown as Blob;
-			const blob = new Blob([file], { type: "image/png" });
-			const formData = new FormData();
-			formData.append("file", blob, "nikos");
-			formData.append("metadata", JSON.stringify(metadata));
-
-			const response = await fetch(endpoint, {
-				method: "POST",
-				headers: {
-					"Content-Type":
-						"multipart/form-data; boundary=---011000010111000001101001",
-					Authorization: `Bearer ${this.apiToken}`,
-				},
-				body: formData,
-			});
-
-			const jsonResponse: CloudflareImageResponse = await response.json();
-
-			return jsonResponse;
-		} catch (error) {
-			console.log("error", error);
-			throw new Error("Error uploading image from File");
 		}
 	}
 }
