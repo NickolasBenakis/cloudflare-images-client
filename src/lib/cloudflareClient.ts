@@ -1,16 +1,23 @@
 import { readFile } from "fs/promises";
 
-interface uploadImageProps {
+interface UploadImageProps {
 	metadata?: Record<string, unknown>;
 	requireSignedURLs?: boolean;
 }
 
-interface uploadImageFromUrlProps extends uploadImageProps {
+interface UploadImageFromUrlProps extends UploadImageProps {
 	imageUrl: string;
 }
 
-interface uploadImageFromFileProps extends uploadImageProps {
+interface UploadImageFromFileProps extends UploadImageProps {
 	filePath: string;
+}
+
+interface CloudflareDeleteImageResponse {
+	errors: string[];
+	messages: string[];
+	result: Record<string, unknown>;
+	success: boolean;
 }
 
 interface CloudflareImagesResponse {
@@ -48,7 +55,25 @@ interface CloudflareImageStatsResponse {
 	};
 	success: boolean;
 }
-class CloudflareClient {
+
+interface ICloudflareClient {
+	uploadImageFromUrl: (
+		props: UploadImageFromUrlProps,
+	) => Promise<CloudflareImageResponse>;
+	uploadImageFromFile: (
+		props: UploadImageFromFileProps,
+	) => Promise<CloudflareImageResponse>;
+	getImageStatistics: () => Promise<CloudflareImageStatsResponse>;
+	getImageDetails: (imageId: string) => Promise<CloudflareImageResponse>;
+	getImageAsBlob: (imageId: string) => Promise<Blob>;
+	listImages: () => Promise<CloudflareImagesResponse>;
+	updateImage: (
+		imageId: string,
+		imageProps: UploadImageProps,
+	) => Promise<CloudflareImageResponse>;
+	deleteImage: (imageId: string) => Promise<CloudflareDeleteImageResponse>;
+}
+class CloudflareClient implements ICloudflareClient {
 	private baseUrl = "https://api.cloudflare.com/client/v4";
 	private readonly accountId: string;
 	private readonly apiToken: string;
@@ -61,7 +86,7 @@ class CloudflareClient {
 		imageUrl,
 		metadata,
 		requireSignedURLs,
-	}: uploadImageFromUrlProps) {
+	}: UploadImageFromUrlProps) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
 		const formData = new FormData();
@@ -87,7 +112,7 @@ class CloudflareClient {
 		}
 	}
 
-	async uploadImageFromFile({ filePath, metadata }: uploadImageFromFileProps) {
+	async uploadImageFromFile({ filePath, metadata }: UploadImageFromFileProps) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
 		try {
@@ -154,7 +179,7 @@ class CloudflareClient {
 		}
 	}
 
-	async getImageBlob(imageId: string) {
+	async getImageAsBlob(imageId: string) {
 		if (!imageId) {
 			throw new Error("Image ID is required");
 		}
@@ -195,6 +220,48 @@ class CloudflareClient {
 		} catch (error) {
 			console.error("error", error);
 			throw new Error("Error getting list images");
+		}
+	}
+
+	async updateImage(imageId: string, imageProps: UploadImageProps) {
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1/${imageId}`;
+
+		try {
+			const response = await fetch(endpoint, {
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+				body: JSON.stringify(imageProps),
+			});
+
+			const jsonResponse: CloudflareImageResponse = await response.json();
+
+			return jsonResponse;
+		} catch (error) {
+			console.error("error", error);
+			throw new Error("Error updating image");
+		}
+	}
+
+	async deleteImage(imageId: string) {
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1/${imageId}`;
+
+		try {
+			const response = await fetch(endpoint, {
+				method: "DELETE",
+				headers: {
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+			});
+
+			const jsonResponse: CloudflareDeleteImageResponse = await response.json();
+
+			return jsonResponse;
+		} catch (error) {
+			console.error("error", error);
+			throw new Error("Error deleting image");
 		}
 	}
 }
