@@ -1,5 +1,6 @@
 import { readFile } from "fs/promises";
 import {
+	CloudflareClientOptions,
 	CloudflareDeleteImageResponse,
 	CloudflareImageResponse,
 	CloudflareImageStatsResponse,
@@ -8,7 +9,7 @@ import {
 	UploadImageFromFileProps,
 	UploadImageFromUrlProps,
 	UploadImageProps,
-} from "../@types/cloudflare-images";
+} from "../types/cloudflare-images";
 
 interface ICloudflareClient {
 	uploadImageFromUrl: (
@@ -39,9 +40,10 @@ class CloudflareClient implements ICloudflareClient {
 	private baseUrl = "https://api.cloudflare.com/client/v4";
 	private readonly accountId: string;
 	private readonly apiToken: string;
-	constructor() {
-		this.accountId = process.env.CLOUDFLARE_ACCOUNT_ID || "";
-		this.apiToken = process.env.CLOUDFLARE_API_TOKEN || "";
+	constructor(options?: CloudflareClientOptions) {
+		this.accountId =
+			options?.accountId || process.env.CLOUDFLARE_ACCOUNT_ID || "";
+		this.apiToken = options?.apiToken || process.env.CLOUDFLARE_API_TOKEN || "";
 	}
 
 	async uploadImageFromUrl({
@@ -285,5 +287,4 @@ class CloudflareClient implements ICloudflareClient {
 	}
 }
 
-const cloudflareClient = new CloudflareClient();
-export default cloudflareClient;
+export default CloudflareClient;

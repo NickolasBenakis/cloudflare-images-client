@@ -1,3 +1,8 @@
+export interface CloudflareClientOptions {
+	apiToken: string;
+	accountId: string;
+}
+
 export interface CloudflareApiResponse {
 	errors: { code: string; message: string }[];
 	messages: { code: string; message: string }[];

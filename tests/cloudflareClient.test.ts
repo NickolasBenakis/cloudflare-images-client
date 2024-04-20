@@ -1,10 +1,12 @@
 import { describe } from "node:test";
 import path from "path";
 import { expect, test } from "vitest";
-import { cloudflareClient } from "../src/index";
+import CloudflareClient from "../src/lib/cloudflareClient";
 
 describe("Cloudflare Client", async () => {
+	const cloudflareClient = new CloudflareClient();
 	let uploadedTestImageId = "";
+
 	describe("uploadImage From Url", async () => {
 		test("success response", async () => {
 			const response = await cloudflareClient.uploadImageFromUrl({
