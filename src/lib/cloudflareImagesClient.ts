@@ -82,7 +82,7 @@ interface ICloudflareClient {
 	deleteManyImages: (
 		imageIds: string[],
 	) => Promise<CloudflareDeleteImageResponse[]>;
-	removeDuplicateImagefilenames: () => Promise<void>;
+	deleteDuplicateImages: () => Promise<void>;
 }
 class CloudflareImagesClient implements ICloudflareClient {
 	private baseUrl = "https://api.cloudflare.com/client/v4";
@@ -300,7 +300,7 @@ class CloudflareImagesClient implements ICloudflareClient {
 		return results;
 	}
 
-	async removeDuplicateImagefilenames() {
+	async deleteDuplicateImages() {
 		const cloudflareImages = await this.listImages();
 		const allCloudflareImageIds = cloudflareImages.result?.images?.map(
 			(image) => image?.id as string,
