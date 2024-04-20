@@ -1,6 +1,6 @@
 interface uploadImageProps {
-	metadata: Record<string, unknown>;
-	requireSignedURLs: boolean;
+	metadata?: Record<string, unknown>;
+	requireSignedURLs?: boolean;
 }
 
 interface uploadImageFromUrlProps extends uploadImageProps {
@@ -25,7 +25,7 @@ interface CloudflareUploadImageResponse {
 	success: boolean;
 }
 class CloudflareClient {
-	private BASE_URL = "https://api.cloudflare.com/client/v4";
+	private baseUrl = "https://api.cloudflare.com/client/v4";
 	private readonly accountId: string;
 	private readonly apiToken: string;
 	constructor() {
@@ -34,24 +34,32 @@ class CloudflareClient {
 	}
 
 	async uploadImageFromUrl({ imageUrl, metadata }: uploadImageFromUrlProps) {
-		const endpoint = `https://api.cloudflare.com/client/v4/accounts/${this.accountId}/images/v1`;
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
+
+		console.log("accountId", this.accountId);
+		console.log("apiToken", this.apiToken);
 
 		const formData = new FormData();
 		formData.append("url", imageUrl);
 		formData.append("metadata", JSON.stringify(metadata));
 		formData.append("requireSignedURLs", "false");
 
-		const response = await fetch(endpoint, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${this.apiToken}`,
-			},
-			body: formData,
-		});
+		try {
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+				body: formData,
+			});
 
-		const jsonResponse: CloudflareUploadImageResponse = await response.json();
+			const jsonResponse: CloudflareUploadImageResponse = await response.json();
 
-		return jsonResponse;
+			return jsonResponse;
+		} catch (error) {
+			console.log("error", error);
+			throw new Error("Error uploading image from URL");
+		}
 	}
 }
 
