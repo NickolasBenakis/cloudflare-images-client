@@ -1,9 +1,9 @@
 import { describe } from "node:test";
-import { expect, test } from "vitest";
+import { expect, it, test } from "vitest";
 import { cloudflareClient } from "../src/index";
 
-describe("uploadImage From Url", async () => {
-	test("success response", async () => {
+test("uploadImage From Url", async () => {
+	describe("success response", async () => {
 		const response = await cloudflareClient.uploadImageFromUrl({
 			imageUrl:
 				"https://images.squarespace-cdn.com/content/v1/60f1a490a90ed8713c41c36c/1629223610791-LCBJG5451DRKX4WOB4SP/37-design-powers-url-structure.jpeg",
@@ -21,7 +21,7 @@ describe("uploadImage From Url", async () => {
 		expect(response.result.variants.length).toBeGreaterThan(0);
 	});
 
-	test("error response", async () => {
+	describe("error response", async () => {
 		const response = await cloudflareClient.uploadImageFromUrl({
 			imageUrl: "",
 			metadata: {},
@@ -31,8 +31,8 @@ describe("uploadImage From Url", async () => {
 	});
 });
 
-describe("get Image statistics", async () => {
-	test("success response", async () => {
+test("get Image statistics", async () => {
+	describe("success response", async () => {
 		const response = await cloudflareClient.getImageStatistics();
 
 		expect(response.errors).toEqual([]);
@@ -43,8 +43,8 @@ describe("get Image statistics", async () => {
 	});
 });
 
-describe("get Image details", async () => {
-	test("success response", async () => {
+test("get Image details", async () => {
+	describe("success response", async () => {
 		const response = await cloudflareClient.getImageDetails(
 			process.env.CLOUDFLARE_TEST_IMAGE_ID || "",
 		);
@@ -60,7 +60,7 @@ describe("get Image details", async () => {
 		expect(response.result.variants.length).toBeGreaterThan(0);
 	});
 
-	test("error response with no image url", async () => {
+	describe("error response with no image url", async () => {
 		const response = await cloudflareClient.getImageDetails("");
 
 		expect(response.errors.length).toBeGreaterThan(0);
