@@ -1,4 +1,4 @@
-import "dotenv/config";
+require("dotenv").config();
 import { describe, expect, test } from "vitest";
 import { CloudflareImagesClient } from "../src/index";
 
