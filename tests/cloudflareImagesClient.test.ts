@@ -1,7 +1,5 @@
-import { describe } from "node:test";
-import path from "path";
 import "dotenv/config";
-import { expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { CloudflareImagesClient } from "../src/index";
 
 describe("Cloudflare Client", async () => {
