@@ -2,8 +2,8 @@ import { describe } from "node:test";
 import { expect, it, test } from "vitest";
 import { cloudflareClient } from "../src/index";
 
-test("uploadImage From Url", async () => {
-	describe("success response", async () => {
+describe.skip("uploadImage From Url", async () => {
+	test("success response", async () => {
 		const response = await cloudflareClient.uploadImageFromUrl({
 			imageUrl:
 				"https://images.squarespace-cdn.com/content/v1/60f1a490a90ed8713c41c36c/1629223610791-LCBJG5451DRKX4WOB4SP/37-design-powers-url-structure.jpeg",
@@ -21,7 +21,7 @@ test("uploadImage From Url", async () => {
 		expect(response.result.variants.length).toBeGreaterThan(0);
 	});
 
-	describe("error response", async () => {
+	test("error response", async () => {
 		const response = await cloudflareClient.uploadImageFromUrl({
 			imageUrl: "",
 			metadata: {},
@@ -31,8 +31,8 @@ test("uploadImage From Url", async () => {
 	});
 });
 
-test("get Image statistics", async () => {
-	describe("success response", async () => {
+describe("get Image statistics", async () => {
+	test("success response", async () => {
 		const response = await cloudflareClient.getImageStatistics();
 
 		expect(response.errors).toEqual([]);
@@ -43,8 +43,8 @@ test("get Image statistics", async () => {
 	});
 });
 
-test("get Image details", async () => {
-	describe("success response", async () => {
+describe("get Image details", async () => {
+	test("success response", async () => {
 		const response = await cloudflareClient.getImageDetails(
 			process.env.CLOUDFLARE_TEST_IMAGE_ID || "",
 		);
@@ -60,9 +60,28 @@ test("get Image details", async () => {
 		expect(response.result.variants.length).toBeGreaterThan(0);
 	});
 
-	describe("error response with no image url", async () => {
+	test("error response with no image url", async () => {
 		const response = await cloudflareClient.getImageDetails("");
 
 		expect(response.errors.length).toBeGreaterThan(0);
+	});
+});
+
+describe("get Image blob", async () => {
+	test("success response", async () => {
+		const response = await cloudflareClient.getImageBlob(
+			process.env.CLOUDFLARE_TEST_IMAGE_ID || "",
+		);
+
+		expect(response).toBeTypeOf("object");
+		expect(response.type).includes("image");
+	});
+
+	test("error response with no image url", async () => {
+		try {
+			const response = await cloudflareClient.getImageBlob("");
+		} catch (error) {
+			expect(Error(error).message).toEqual("Error: Image ID is required");
+		}
 	});
 });

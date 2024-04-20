@@ -112,6 +112,29 @@ class CloudflareClient {
 			throw new Error("Error getting image details");
 		}
 	}
+
+	async getImageBlob(imageId: string) {
+		if (!imageId) {
+			throw new Error("Image ID is required");
+		}
+
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1/${imageId}/blob`;
+
+		try {
+			const response = await fetch(endpoint, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${this.apiToken}`,
+				},
+			});
+
+			const blob = await response.blob();
+			return blob;
+		} catch (error) {
+			console.log("error", error);
+			throw new Error("Error getting image blob");
+		}
+	}
 }
 
 const cloudflareClient = new CloudflareClient();
