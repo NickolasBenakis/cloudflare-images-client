@@ -1,4 +1,4 @@
-import { createReadStream } from "fs";
+import { readFile } from "fs/promises";
 
 interface uploadImageProps {
 	metadata?: Record<string, unknown>;
@@ -173,9 +173,11 @@ class CloudflareClient {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
 		try {
-			console.log("filePath", filePath);
+			const file = (await readFile(filePath)) as unknown as Blob;
+			const blob = new Blob([file], { type: "image/png" });
 			const formData = new FormData();
-			formData.append("file", JSON.stringify(createReadStream(filePath)));
+			formData.append("file", blob, "nikos");
+			formData.append("metadata", JSON.stringify(metadata));
 
 			const response = await fetch(endpoint, {
 				method: "POST",

@@ -1,7 +1,7 @@
 import { describe } from "node:test";
+import path from "path";
 import { expect, test } from "vitest";
 import { cloudflareClient } from "../src/index";
-import path from "path";
 
 describe.skip("uploadImage From Url", async () => {
 	test("success response", async () => {
@@ -100,9 +100,12 @@ describe("list images", async () => {
 	});
 });
 
-test("uploadImage From File", async () => {
+test.only("uploadImage From File", async () => {
+	const paola = path.join(__dirname, "images", "test.png");
+	const paolablob = new Blob([paola]);
+	console.log("paola", paola);
 	const response = await cloudflareClient.uploadImageFromFile({
-		filePath: path.join(__dirname, 'images', 'test.png'),
+		filePath: paola,
 		metadata: {},
 	});
 
