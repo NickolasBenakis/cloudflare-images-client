@@ -1,0 +1,49 @@
+{
+	"name": "cloudflare-images-client",
+	"version": "1.0.0",
+	"description": "Complete wrapper around cloudflare images api",
+	"main": "src/index",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview"
+	},
+	"devDependencies": {
+		"typescript": "^5.2.2",
+		"vite": "^5.2.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/NickolasBenakis/cloudflare-images-client.git"
+	},
+	"author": "Nikos Benakis <nickolasbenele@gmail.com>",
+	"contributors": [
+		{
+			"name": "Nikos Benakis",
+			"email": "nickolasbenele@gmail.com",
+			"url": "https://github.com/NickolasBenakis"
+		},
+		{
+			"name": "Dimitris Pattas",
+			"email": "jane.smith@example.com",
+			"url": "https://github.com/DimitrisPattas"
+		},
+		{
+			"name": "Alice",
+			"email": "alice@example.com"
+		}
+	],
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/NickolasBenakis/cloudflare-images-client/issues"
+	},
+	"homepage": "https://github.com/NickolasBenakis/cloudflare-images-client#readme",
+	"keywords": [
+		"cloudflare",
+		"Cloudflare",
+		"Cloudflare Images",
+		"API Client",
+		"Assets"
+	]
+}
