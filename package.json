@@ -1,6 +1,6 @@
 {
 	"name": "cloudflare-images-client",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Complete wrapper around cloudflare images api",
 	"type": "module",
 	"main": "./dist/index.js",
