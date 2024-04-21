@@ -1,4 +1,5 @@
 require("dotenv").config();
+import path from "path";
 import { describe, expect, test } from "vitest";
 import { CloudflareImagesClient } from "../src/index";
 
@@ -104,27 +105,25 @@ describe("Cloudflare Client", async () => {
 		});
 	});
 
-	// describe.skip("Upload Image from file", () => {
-	// 	test.skip("uploadImage From File", async () => {
-	// 		const paola = path.join(__dirname, "images", "test.png");
-	// 		const paolablob = new Blob([paola]);
-	// 		console.log("paola", paola);
-	// 		const response = await cloudflareClient.uploadImageFromFile({
-	// 			filePath: paola,
-	// 			metadata: {},
-	// 		});
+	describe("Upload Image from file", () => {
+		test("uploadImage From File", async () => {
+			const filePath = path.join(__dirname, "images", "test.png");
+			const response = await cloudflareClient.uploadImageFromFile({
+				filePath,
+				metadata: {},
+			});
 
-	// 		expect(response.errors).toEqual([]);
-	// 		expect(response.messages).toEqual([]);
-	// 		expect(response.success).toBe(true);
-	// 		expect(response.result.filename).toBeTypeOf("string");
-	// 		expect(response.result.id).toBeTypeOf("string");
-	// 		expect(response.result.meta).toBeTypeOf("object");
-	// 		expect(response.result.requireSignedURLs).toBe(false);
-	// 		expect(response.result.uploaded).toBeTypeOf("string");
-	// 		expect(response.result.variants.length).toBeGreaterThan(0);
-	// 	});
-	// });
+			expect(response.errors).toEqual([]);
+			expect(response.messages).toEqual([]);
+			expect(response.success).toBe(true);
+			expect(response.result.filename).toBeTypeOf("string");
+			expect(response.result.id).toBeTypeOf("string");
+			expect(response.result.meta).toBeTypeOf("object");
+			expect(response.result.requireSignedURLs).toBe(false);
+			expect(response.result.uploaded).toBeTypeOf("string");
+			expect(response.result.variants.length).toBeGreaterThan(0);
+		});
+	});
 
 	describe("Update Image", async () => {
 		test("success response", async () => {

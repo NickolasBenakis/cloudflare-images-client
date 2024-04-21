@@ -1,4 +1,5 @@
-// import { readFile } from "fs/promises";
+import { readFileSync } from "fs";
+
 export interface CloudflareClientOptions {
 	apiToken: string;
 	accountId: string;
@@ -19,6 +20,7 @@ export interface UploadImageFromUrlProps extends UploadImageProps {
 }
 
 export interface UploadImageFromFileProps extends UploadImageProps {
+	fileName?: string;
 	filePath: string;
 }
 
@@ -63,9 +65,9 @@ interface ICloudflareClient {
 	uploadImageFromUrl: (
 		props: UploadImageFromUrlProps,
 	) => Promise<CloudflareImageResponse>;
-	// uploadImageFromFile: (
-	// 	props: UploadImageFromFileProps,
-	// ) => Promise<CloudflareImageResponse>;
+	uploadImageFromFile: (
+		props: UploadImageFromFileProps,
+	) => Promise<CloudflareImageResponse>;
 	getImageStatistics: () => Promise<CloudflareImageStatsResponse>;
 	getImageDetails: (imageId: string) => Promise<CloudflareImageResponse>;
 	getImageAsBlob: (imageId: string) => Promise<Blob>;
@@ -123,34 +125,32 @@ class CloudflareImagesClient implements ICloudflareClient {
 		}
 	}
 
-	// async uploadImageFromFile({ filePath, metadata }: UploadImageFromFileProps) {
-	// 	const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
+	async uploadImageFromFile({ fileName = 'filename_for_cloudflare', filePath, metadata  }: UploadImageFromFileProps) {
+		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
-	// 	try {
-	// 		const file = (await readFile(filePath)) as unknown as Blob;
-	// 		const blob = new Blob([file], { type: "image/png" });
-	// 		const formData = new FormData();
-	// 		formData.append("file", blob, "nikos");
-	// 		formData.append("metadata", JSON.stringify(metadata));
+		try {
+			const image = readFileSync(filePath);
+			const formData = new FormData();
+			const blobData = new Blob([image]);
+			formData.append("file", blobData, fileName);
+			formData.append("metadata", JSON.stringify(metadata));
 
-	// 		const response = await fetch(endpoint, {
-	// 			method: "POST",
-	// 			headers: {
-	// 				"Content-Type":
-	// 					"multipart/form-data; boundary=---011000010111000001101001",
-	// 				Authorization: `Bearer ${this.apiToken}`,
-	// 			},
-	// 			body: formData,
-	// 		});
+			const response = await fetch(endpoint, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${this.apiToken}`
+				},
+				body: formData,
+			});
 
-	// 		const jsonResponse: CloudflareImageResponse = await response.json();
+			const jsonResponse: CloudflareImageResponse = await response.json();
 
-	// 		return jsonResponse;
-	// 	} catch (error) {
-	// 		console.log("error", error);
-	// 		throw new Error("Error uploading image from File");
-	// 	}
-	// }
+			return jsonResponse;
+		} catch (error) {
+			console.log("error", error);
+			throw new Error("Error uploading image from File");
+		}
+	}
 
 	async getImageStatistics() {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1/stats`;
