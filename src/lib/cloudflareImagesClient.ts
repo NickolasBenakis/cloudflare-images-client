@@ -125,7 +125,12 @@ class CloudflareImagesClient implements ICloudflareClient {
 		}
 	}
 
-	async uploadImageFromFile({ fileName = 'filename_for_cloudflare', filePath, metadata  }: UploadImageFromFileProps) {
+	async uploadImageFromFile({
+		fileName = "filename_for_cloudflare",
+		filePath,
+		metadata,
+		requireSignedURLs = false,
+	}: UploadImageFromFileProps) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
 		try {
@@ -134,11 +139,12 @@ class CloudflareImagesClient implements ICloudflareClient {
 			const blobData = new Blob([image]);
 			formData.append("file", blobData, fileName);
 			formData.append("metadata", JSON.stringify(metadata));
+			formData.append("requireSignedURLs", JSON.stringify(requireSignedURLs));
 
 			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: {
-					Authorization: `Bearer ${this.apiToken}`
+					Authorization: `Bearer ${this.apiToken}`,
 				},
 				body: formData,
 			});
