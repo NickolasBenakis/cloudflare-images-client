@@ -1,7 +1,7 @@
 [![Node.js CI](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/node.js.yml/badge.svg)](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/node.js.yml)
 
 ## License
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
+[![MIT License](https://github.com/NickolasBenakis/cloudflare-images-client/LICENSE)](https://github.com/NickolasBenakis/cloudflare-images-client/LICENSE)
 
 ## Version
 [![Version](https://badge.fury.io/gh/tterb%2FHyde.svg)](https://badge.fury.io/gh/tterb%2FHyde)
