@@ -1,5 +1,16 @@
 [![Node.js CI](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/node.js.yml/badge.svg)](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/node.js.yml)
 
+## License
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
+
+## Version
+[![Version](https://badge.fury.io/gh/tterb%2FHyde.svg)](https://badge.fury.io/gh/tterb%2FHyde)
+[![GitHub Release](https://img.shields.io/github/release/tterb/PlayMusic.svg?style=flat)]()  
+
+## Downloads
+#### GitHub (All Releases)
+[![Github All Releases](https://img.shields.io/github/downloads/atom/atom/total.svg?style=flat)]()  
+
 # cloudflare-images-client
 
 This repository is a complete wrapper around the Cloudflare Images API. It provides a simple and efficient way to interact with the API, allowing you to manage your images on Cloudflare with ease.
