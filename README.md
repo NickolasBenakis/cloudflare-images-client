@@ -7,6 +7,8 @@ This repository is a complete wrapper around the Cloudflare Images API. It provi
 https://developers.cloudflare.com/images/
 https://developers.cloudflare.com/api/operations/cloudflare-images-list-images-v2
 
+https://www.npmjs.com/package/cloudflare-images-client
+
 ## API
 
 The API provides the following functionalities:
