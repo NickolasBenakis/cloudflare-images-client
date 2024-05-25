@@ -5,10 +5,10 @@
     "target": "es2022",
     "useDefineForClassFields": true,
     "module": "esnext",
-    "lib": ["es2022","es2020", "DOM", "DOM.Iterable"],
+    "lib": ["es2022", "es2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "outDir": "dist",
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
     "rootDir": "src/",
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -23,7 +23,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
- "include": ["src/**/*"],
-  "exclude": ["node_modules"],
-  
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }
