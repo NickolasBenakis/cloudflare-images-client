@@ -4,10 +4,9 @@
 
 This repository is a complete wrapper around the Cloudflare Images API. It provides a simple and efficient way to interact with the API, allowing you to manage your images on Cloudflare with ease.
 
-https://developers.cloudflare.com/images/
-https://developers.cloudflare.com/api/operations/cloudflare-images-list-images-v2
-
-https://www.npmjs.com/package/cloudflare-images-client
+- **Cloudflare Images Docs** https://developers.cloudflare.com/images/
+- **Cloudflare Images Api** https://developers.cloudflare.com/api/operations/cloudflare-images-list-images-v2
+- **Npm Registry** https://www.npmjs.com/package/cloudflare-images-client
 
 ## API
 
