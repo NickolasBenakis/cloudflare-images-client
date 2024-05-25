@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { CLOUDFLARE_BASE_URL } from "../../config";
-import { CloudflareImageResponse } from "../../lib/cloudflareImagesClient";
+import type { CloudflareImageResponse } from "../../lib/cloudflareImagesClient";
 
 export const createImage = http.post<
 	{ accountId: string },
