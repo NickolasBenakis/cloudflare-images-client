@@ -318,7 +318,7 @@ class CloudflareImagesClient implements ICloudflareClient {
 					acc: Record<string, CloudflareImageResponse["result"]>,
 					image: CloudflareImageResponse["result"],
 				) => {
-					acc[image.filename] = image;
+					acc[image?.filename ?? ""] = image;
 					return acc;
 				},
 				{} as Record<string, CloudflareImageResponse["result"]>,
@@ -326,7 +326,7 @@ class CloudflareImagesClient implements ICloudflareClient {
 
 		const uniqueCloudflareImageIds = Object.values(
 			cloudflareImagesByFilename,
-		).map((image: CloudflareImageResponse["result"]) => image.id as string);
+		).map((image: CloudflareImageResponse["result"]) => image?.id as string);
 
 		const imageUrlsToDelete = allCloudflareImageIds?.filter((id: string) => {
 			return !uniqueCloudflareImageIds?.includes?.(id);
