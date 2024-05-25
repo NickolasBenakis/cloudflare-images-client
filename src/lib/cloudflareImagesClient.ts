@@ -1,4 +1,5 @@
 import { readFileSync } from "fs";
+import { CLOUDFLARE_BASE_URL } from "../config";
 
 export interface CloudflareClientOptions {
 	apiToken: string;
@@ -6,7 +7,7 @@ export interface CloudflareClientOptions {
 }
 
 export interface CloudflareApiResponse {
-	errors: { code: string; message: string }[];
+	errors: { code: number; message: string }[];
 	messages: { code: string; message: string }[];
 	success: boolean;
 }
@@ -49,7 +50,7 @@ export interface CloudflareImageResponse extends CloudflareApiResponse {
 		requireSignedURLs: boolean;
 		uploaded: string;
 		variants: string[];
-	};
+	} | null;
 }
 
 export interface CloudflareImageStatsResponse extends CloudflareApiResponse {
@@ -87,7 +88,7 @@ interface ICloudflareClient {
 	deleteDuplicateImages: () => Promise<void>;
 }
 class CloudflareImagesClient implements ICloudflareClient {
-	private baseUrl = "https://api.cloudflare.com/client/v4";
+	private baseUrl = CLOUDFLARE_BASE_URL;
 	private readonly accountId: string;
 	private readonly apiToken: string;
 	constructor(options?: CloudflareClientOptions) {
