@@ -12,7 +12,7 @@ Zero dependencies. Runs on Node.js, Cloudflare Workers, Deno, Bun and in the bro
 [![types](https://img.shields.io/npm/types/cloudflare-images-client)](https://www.npmjs.com/package/cloudflare-images-client)
 [![license](https://img.shields.io/npm/l/cloudflare-images-client)](LICENSE)
 
-<a href="https://buymeacoffee.com/BMC_HANDLE"><img src="https://img.shields.io/badge/Buy_me_a_coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy me a coffee" height="32"></a>
+<a href="https://buymeacoffee.com/nikosbenakis"><img src="https://img.shields.io/badge/Buy_me_a_coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy me a coffee" height="32"></a>
 
 </div>
 
@@ -188,7 +188,7 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
 
 ## Support
 
-If this package saves you some time, you can [buy me a coffee](https://buymeacoffee.com/BMC_HANDLE) ☕. It keeps the project maintained.
+If this package saves you some time, you can [buy me a coffee](https://buymeacoffee.com/nikosbenakis) ☕. It keeps the project maintained.
 
 ## License
 
