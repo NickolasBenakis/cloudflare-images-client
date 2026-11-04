@@ -1,12 +1,13 @@
 require('dotenv').config();
+import { readFileSync } from 'node:fs';
 import path from 'path';
 import { describe, expect, test } from 'vitest';
 import { CloudflareImagesClient } from '../src/index';
 
 describe('Cloudflare Client', async () => {
   const cloudflareClient = new CloudflareImagesClient({
-    accountId: process.env.CLOUDFLARE_ACCOUNT_ID || '',
-    apiToken: process.env.CLOUDFLARE_API_TOKEN || '',
+    accountId: process.env.CLOUDFLARE_ACCOUNT_ID || 'test-account-id',
+    apiToken: process.env.CLOUDFLARE_API_TOKEN || 'test-api-token',
   });
   let uploadedTestImageId = '';
 
@@ -127,6 +128,34 @@ describe('Cloudflare Client', async () => {
       expect(response.result!.requireSignedURLs).toBe(false);
       expect(response.result!.uploaded).toBeTypeOf('string');
       expect(response.result!.variants.length).toBeGreaterThan(0);
+    });
+
+    test('uploadImage From File contents (Blob)', async () => {
+      const bytes = readFileSync(path.join(__dirname, 'images', 'test.png'));
+      const response = await cloudflareClient.uploadImageFromFile({
+        file: new Blob([bytes], { type: 'image/png' }),
+        fileName: 'test.png',
+      });
+
+      expect(response.success).toBe(true);
+      expect(response.result!.id).toBeTypeOf('string');
+    });
+
+    test('uploadImage From File contents (Uint8Array)', async () => {
+      const bytes = new Uint8Array(
+        readFileSync(path.join(__dirname, 'images', 'test.png'))
+      );
+      const response = await cloudflareClient.uploadImageFromFile({
+        file: bytes,
+      });
+
+      expect(response.success).toBe(true);
+    });
+
+    test('throws when neither file nor filePath is given', async () => {
+      await expect(cloudflareClient.uploadImageFromFile({})).rejects.toThrow(
+        'Either `file` or `filePath` is required'
+      );
     });
   });
 

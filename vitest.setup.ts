@@ -1,7 +1,7 @@
 import { server } from './src/mocks/node.js';
 
 beforeAll(() => {
-  server.listen();
+  server.listen({ onUnhandledRequest: 'error' });
 });
 
 afterEach(() => {
