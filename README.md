@@ -1,4 +1,4 @@
-[![Node.js CI](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/node.js.yml/badge.svg)](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/node.js.yml)
+[![CI](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/ci.yml/badge.svg)](https://github.com/NickolasBenakis/cloudflare-images-client/actions/workflows/ci.yml) [![npm](https://img.shields.io/npm/v/cloudflare-images-client)](https://www.npmjs.com/package/cloudflare-images-client)
 
 # cloudflare-images-client
 
