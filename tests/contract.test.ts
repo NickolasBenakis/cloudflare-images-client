@@ -206,10 +206,16 @@ describe("Cloudflare Images API contract", () => {
 		await client.createDirectUpload({
 			id: "user-avatar-123",
 			metadata: { owner: "user_123" },
-			requireSignedURLs: true,
+			// Custom IDs can't require signed URLs, so keep this false here.
+			requireSignedURLs: false,
 			expiry: new Date(Date.now() + 10 * 60 * 1000),
 			creator: "user_123",
 		});
+		await expectConforms();
+	});
+
+	test("createDirectUpload for a private image", async () => {
+		await client.createDirectUpload({ requireSignedURLs: true });
 		await expectConforms();
 	});
 

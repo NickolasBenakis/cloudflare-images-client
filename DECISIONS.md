@@ -121,3 +121,4 @@
   would have reported a change every Monday even when the content was identical
   (reproduced against `main`). Now the spec is excluded from Biome and the
   workflow compares JSON content via `openapi-diff.mjs`.
+- **Review fixes (fresh-eyes review of the diff):** `imageDeliveryUrl` keeps `/` in custom IDs and `=`/`,` in flexible variants instead of percent-encoding them. Signing rejects past expiries, millisecond timestamps (> 1e11) and sub-second `expiresIn`. CI now checks CJS signing on Node 18/20 too.

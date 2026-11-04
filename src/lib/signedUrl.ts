@@ -37,7 +37,14 @@ export function imageDeliveryUrl({
 		throw new Error("accountHash, imageId and variant are required");
 	}
 	const base = baseUrl.replace(/\/+$/, "");
-	return `${base}/${encodeURIComponent(accountHash)}/${encodeURIComponent(imageId)}/${encodeURIComponent(variant)}`;
+	// Custom image IDs may contain "/", and flexible variants use "=" and ","
+	// (e.g. "w=400,sharpen=3"). Cloudflare expects those literally.
+	const id = encodeURIComponent(imageId).replace(/%2F/gi, "/");
+	const variantSegment = encodeURIComponent(variant).replace(
+		/%(3D|2C)/gi,
+		(match) => decodeURIComponent(match),
+	);
+	return `${base}/${encodeURIComponent(accountHash)}/${id}/${variantSegment}`;
 }
 
 // Node 18 doesn't expose Web Crypto as a global by default. The specifier is
@@ -62,23 +69,34 @@ function toHex(buffer: ArrayBuffer): string {
 	).join("");
 }
 
+// Unix seconds won't reach 1e11 until the year 5138, so anything larger is
+// almost certainly milliseconds passed by mistake.
+const MAX_UNIX_SECONDS = 1e11;
+
 function expiryTimestamp({
 	expiresAt,
 	expiresIn,
 }: SignImageUrlOptions): number {
+	const now = Math.floor(Date.now() / 1000);
 	if (expiresAt !== undefined) {
 		const seconds =
 			expiresAt instanceof Date
 				? Math.floor(expiresAt.getTime() / 1000)
 				: Math.floor(expiresAt);
 		if (!Number.isFinite(seconds)) throw new Error("Invalid expiresAt");
+		if (seconds > MAX_UNIX_SECONDS) {
+			throw new Error(
+				"expiresAt looks like milliseconds; pass a Date or Unix seconds",
+			);
+		}
+		if (seconds <= now) throw new Error("expiresAt must be in the future");
 		return seconds;
 	}
-	const ttl = expiresIn ?? DEFAULT_EXPIRES_IN_SECONDS;
-	if (!Number.isFinite(ttl) || ttl <= 0) {
-		throw new Error("expiresIn must be a positive number of seconds");
+	const ttl = Math.floor(expiresIn ?? DEFAULT_EXPIRES_IN_SECONDS);
+	if (!Number.isFinite(ttl) || ttl < 1) {
+		throw new Error("expiresIn must be at least 1 second");
 	}
-	return Math.floor(Date.now() / 1000) + Math.floor(ttl);
+	return now + ttl;
 }
 
 /**

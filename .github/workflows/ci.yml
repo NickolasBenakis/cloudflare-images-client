@@ -115,4 +115,12 @@ jobs:
             const signed = new URL(await signImageUrl(url, { key: "k", expiresAt: 1900000000 }));
             const expected = createHmac("sha256", "k").update("/hash/id/public?exp=1900000000").digest("hex");
             if (signed.searchParams.get("sig") !== expected) throw new Error("signature mismatch");
-            console.log("signing ok on", process.version);'
+            console.log("ESM signing ok on", process.version);'
+          node -e '
+            const { createHmac } = require("node:crypto");
+            const { signImageUrl } = require("cloudflare-images-client");
+            signImageUrl("https://imagedelivery.net/hash/id/public", { key: "k", expiresAt: 1900000000 }).then((s) => {
+              const expected = createHmac("sha256", "k").update("/hash/id/public?exp=1900000000").digest("hex");
+              if (new URL(s).searchParams.get("sig") !== expected) throw new Error("signature mismatch");
+              console.log("CJS signing ok on", process.version);
+            });'

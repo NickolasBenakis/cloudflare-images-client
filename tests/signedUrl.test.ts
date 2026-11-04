@@ -85,6 +85,18 @@ describe("signImageUrl", () => {
 		expect(signed).toBe(referenceSign(URL_, KEY, 1_900_000_000));
 	});
 
+	test("rejects past, millisecond and sub-second expiries", async () => {
+		await expect(
+			signImageUrl(URL_, { key: KEY, expiresAt: 1_000_000_000 }),
+		).rejects.toThrow("in the future");
+		await expect(
+			signImageUrl(URL_, { key: KEY, expiresAt: Date.now() + 3_600_000 }),
+		).rejects.toThrow("milliseconds");
+		await expect(
+			signImageUrl(URL_, { key: KEY, expiresIn: 0.5 }),
+		).rejects.toThrow("at least 1 second");
+	});
+
 	test("rejects a missing key or invalid expiry", async () => {
 		await expect(signImageUrl(URL_, { key: "" })).rejects.toThrow(
 			"signing key",
@@ -109,17 +121,27 @@ describe("imageDeliveryUrl", () => {
 		).toBe(URL_);
 	});
 
-	test("supports a custom base URL and encodes segments", () => {
+	test("supports a custom base URL and encodes unsafe characters", () => {
 		expect(
 			imageDeliveryUrl({
 				accountHash: "hash",
-				imageId: "folder/image 1",
-				variant: "w=400",
+				imageId: "image 1?#",
+				variant: "public",
 				baseUrl: "https://images.example.com/cdn-cgi/imagedelivery/",
 			}),
 		).toBe(
-			"https://images.example.com/cdn-cgi/imagedelivery/hash/folder%2Fimage%201/w%3D400",
+			"https://images.example.com/cdn-cgi/imagedelivery/hash/image%201%3F%23/public",
 		);
+	});
+
+	test("keeps slashes in custom IDs and flexible variant syntax", () => {
+		expect(
+			imageDeliveryUrl({
+				accountHash: "hash",
+				imageId: "folder/img.jpg",
+				variant: "w=400,sharpen=3",
+			}),
+		).toBe("https://imagedelivery.net/hash/folder/img.jpg/w=400,sharpen=3");
 	});
 
 	test("requires every part", () => {
