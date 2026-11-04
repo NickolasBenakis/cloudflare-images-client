@@ -89,3 +89,4 @@
   for a new spec version. The real scheduled run can only happen after merge.
 - **Also included:** the release tag format fix (no `v` prefix, matching `1.1.x`),
   which missed PR #7.
+- **Version bumped to 1.2.1** so merging ships the metadata fix through the automated release.
