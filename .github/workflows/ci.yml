@@ -35,7 +35,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Dev tooling (vitest 5, tsup 9, msw 3) needs Node 22.12+.
+        # Every Node release line that's still supported upstream.
+        # (Dev tooling needs 22.12+, so older lines are covered by "runtime".)
         node-version: [22.x, 24.x, 26.x]
     steps:
       - uses: actions/checkout@v7
@@ -70,8 +71,9 @@ jobs:
           retention-days: 7
 
   runtime:
-    # The published package promises Node 18+ (engines). Install the real
-    # tarball into an empty project on each runtime and load it both ways.
+    # The published package promises Node 18+ (engines), but the dev tooling
+    # can't run there. Install the real tarball into an empty project on the
+    # older lines the test job can't cover, and load it both ways.
     name: Runtime (Node ${{ matrix.node-version }})
     needs: pack
     runs-on: ubuntu-latest
@@ -79,7 +81,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.x]
+        node-version: [18.x, 20.x]
     steps:
       - uses: actions/setup-node@v7
         with:
