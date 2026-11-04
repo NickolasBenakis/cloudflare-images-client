@@ -8,6 +8,8 @@ export type {
 	CloudflareListImagesQueryParams,
 	UploadImageFromUrlProps,
 	UploadImageFromFileProps,
+	UploadImageFileData,
+	UploadImageProps,
 } from "./lib/cloudflareImagesClient";
 
 export { default as CloudflareImagesClient } from "./lib/cloudflareImagesClient";

@@ -1,4 +1,3 @@
-import { readFileSync } from "fs";
 import { CLOUDFLARE_BASE_URL } from "../config";
 
 export interface CloudflareClientOptions {
@@ -20,9 +19,25 @@ export interface UploadImageFromUrlProps extends UploadImageProps {
 	url: string;
 }
 
+export type UploadImageFileData = Blob | ArrayBuffer | Uint8Array;
+
 export interface UploadImageFromFileProps extends UploadImageProps {
 	fileName?: string;
-	filePath: string;
+	/** File contents. Works in any runtime (Node, Cloudflare Workers, Deno, browsers). */
+	file?: UploadImageFileData;
+	/** Path to a file on disk. Node.js only; ignored when `file` is given. */
+	filePath?: string;
+}
+
+// The specifier is kept in a variable so bundlers targeting non-Node runtimes
+// (e.g. wrangler for Workers) don't try to resolve `fs` at build time.
+const NODE_FS_PROMISES = "node:fs/promises";
+
+async function readFileFromPath(filePath: string): Promise<Uint8Array> {
+	const fs: typeof import("node:fs/promises") = await import(
+		/* @vite-ignore */ /* webpackIgnore: true */ NODE_FS_PROMISES
+	);
+	return fs.readFile(filePath);
 }
 
 export interface CloudflareDeleteImageResponse extends CloudflareApiResponse {
@@ -128,16 +143,22 @@ class CloudflareImagesClient implements ICloudflareClient {
 
 	async uploadImageFromFile({
 		fileName = "filename_for_cloudflare",
+		file,
 		filePath,
 		metadata,
 		requireSignedURLs = false,
 	}: UploadImageFromFileProps) {
 		const endpoint = `${this.baseUrl}/accounts/${this.accountId}/images/v1`;
 
+		if (!file && !filePath) {
+			throw new Error("Either `file` or `filePath` is required");
+		}
+
 		try {
-			const image = readFileSync(filePath);
+			const image = file ?? (await readFileFromPath(filePath as string));
 			const formData = new FormData();
-			const blobData = new Blob([image]);
+			const blobData =
+				image instanceof Blob ? image : new Blob([image as BlobPart]);
 			formData.append("file", blobData, fileName);
 			formData.append("metadata", JSON.stringify(metadata));
 			formData.append("requireSignedURLs", JSON.stringify(requireSignedURLs));
@@ -154,7 +175,7 @@ class CloudflareImagesClient implements ICloudflareClient {
 
 			return jsonResponse;
 		} catch (error) {
-			console.log("error", error);
+			console.error("error", error);
 			throw new Error("Error uploading image from File");
 		}
 	}

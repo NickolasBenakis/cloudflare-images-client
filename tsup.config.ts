@@ -7,6 +7,6 @@ export default defineConfig({
 	splitting: false,
 	sourcemap: true,
 	clean: true,
-	replaceNodeEnv: true,
-	external: ["path", "fs/promises", "form-data", "dotenv", "@biomejs/biome"],
+	target: "es2022",
+	platform: "neutral",
 });
