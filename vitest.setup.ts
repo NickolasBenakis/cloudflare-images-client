@@ -1,13 +1,13 @@
-import { server } from './src/mocks/node.js';
+import { server } from "./src/mocks/node.js";
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' });
+	server.listen({ onUnhandledRequest: "error" });
 });
 
 afterEach(() => {
-  server.resetHandlers();
+	server.resetHandlers();
 });
 
 afterAll(() => {
-  server.close();
+	server.close();
 });

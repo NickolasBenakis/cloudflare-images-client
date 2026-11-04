@@ -1,0 +1,93 @@
+name: Release
+
+# Publishes to npm when a commit on main carries a package.json version that
+# isn't on npm yet. To release: bump "version" in a PR, merge it.
+#
+# Auth uses npm trusted publishing (GitHub OIDC), so there is no NPM_TOKEN
+# secret. Provenance attestations are generated automatically.
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Check version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      publish: ${{ steps.check.outputs.publish }}
+      dist-tag: ${{ steps.check.outputs.dist-tag }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+      - id: check
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Prereleases (1.3.0-beta.1) go to "next" so they don't become "latest".
+          if [[ "$VERSION" == *-* ]]; then TAG=next; else TAG=latest; fi
+          echo "dist-tag=$TAG" >> "$GITHUB_OUTPUT"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm, nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$NAME@$VERSION is not on npm yet, will publish with tag $TAG."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  ci:
+    name: CI
+    needs: version
+    if: needs.version.outputs.publish == 'true'
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Publish v${{ needs.version.outputs.version }}
+    needs: [version, ci]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Optional: add required reviewers to this environment in the repo settings
+    # to require a manual approval before every publish.
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/cloudflare-images-client/v/${{ needs.version.outputs.version }}
+    permissions:
+      contents: write # create the git tag and GitHub Release
+      id-token: write # npm trusted publishing (OIDC)
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      # Trusted publishing needs npm 11.5.1+.
+      - run: npm install -g npm@latest
+      - run: npm ci
+      # prepublishOnly runs build, tests and package checks before upload.
+      - run: npm publish --tag "${{ needs.version.outputs.dist-tag }}"
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          PRERELEASE=""
+          if [[ "$VERSION" == *-* ]]; then PRERELEASE="--prerelease"; fi
+          gh release create "v$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "v$VERSION" \
+            --generate-notes \
+            $PRERELEASE

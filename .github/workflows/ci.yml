@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    name: Lint & format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+
+  test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # Dev tooling (vitest 5, tsup 9, msw 3) needs Node 22.12+.
+        node-version: [22.x, 24.x, 26.x]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run check:package
+      - run: npm run check:workers
+
+  pack:
+    name: Pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm pack
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-tarball
+          path: cloudflare-images-client-*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  runtime:
+    # The published package promises Node 18+ (engines). Install the real
+    # tarball into an empty project on each runtime and load it both ways.
+    name: Runtime (Node ${{ matrix.node-version }})
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.x, 20.x, 22.x, 24.x]
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-tarball
+      - name: Install tarball into a fresh project
+        run: |
+          mkdir consumer && cd consumer
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund ../cloudflare-images-client-*.tgz
+      - name: Load via ESM and CJS
+        working-directory: consumer
+        run: |
+          node --input-type=module -e '
+            import { CloudflareImagesClient } from "cloudflare-images-client";
+            new CloudflareImagesClient({ accountId: "a", apiToken: "t" });
+            console.log("ESM ok");'
+          node -e '
+            const { CloudflareImagesClient } = require("cloudflare-images-client");
+            new CloudflareImagesClient({ accountId: "a", apiToken: "t" });
+            console.log("CJS ok");'

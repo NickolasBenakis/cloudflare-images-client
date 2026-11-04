@@ -1,6 +1,6 @@
 import { HttpResponse, http } from "msw";
 import { CLOUDFLARE_BASE_URL } from "../../config";
-import {
+import type {
 	CloudflareImageResponse,
 	UploadImageProps,
 } from "../../lib/cloudflareImagesClient";

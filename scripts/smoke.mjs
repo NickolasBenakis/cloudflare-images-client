@@ -1,9 +1,10 @@
 // Verifies the built package loads through both module systems and that the
 // bundle does not statically depend on Node.js built-ins (so it can run in
 // Cloudflare Workers, Deno and browsers).
+
+import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import assert from "node:assert/strict";
 
 const require = createRequire(import.meta.url);
 
