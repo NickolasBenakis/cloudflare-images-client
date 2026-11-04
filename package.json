@@ -1,6 +1,6 @@
 {
 	"name": "cloudflare-images-client",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "Complete wrapper around cloudflare images api",
 	"type": "module",
 	"main": "./dist/index.cjs",
@@ -31,12 +31,14 @@
 		"build": "tsup",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
+		"test:contract": "vitest run tests/contract.test.ts",
 		"test:watch": "vitest",
 		"coverage": "vitest run --coverage",
 		"lint": "biome ci .",
 		"format": "biome check --write .",
 		"check:package": "node scripts/smoke.mjs && publint && attw --pack .",
 		"check:workers": "esbuild dist/index.js --bundle --platform=browser --conditions=workerd,worker,browser --format=esm --log-level=warning > /dev/null",
+		"openapi:update": "node scripts/openapi-update.mjs",
 		"prepublishOnly": "npm run build && npm test && npm run check:package && npm run check:workers"
 	},
 	"devDependencies": {
@@ -44,6 +46,8 @@
 		"@biomejs/biome": "^2.6.5",
 		"@types/node": "^26.6.6",
 		"@vitest/coverage-v8": "^5.1.0",
+		"ajv": "^8.20.0",
+		"ajv-formats": "^3.0.1",
 		"dotenv": "^18.0.9",
 		"esbuild": "^0.28.2",
 		"msw": "^3.0.3",

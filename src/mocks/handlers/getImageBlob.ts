@@ -1,22 +1,15 @@
 import { HttpResponse, http } from "msw";
 import { CLOUDFLARE_BASE_URL } from "../../config";
+import { failure } from "../fixtures";
 
-export const getImageBlob = http.get<
-	{ accountId: string; imageId: string },
-	Blob
->(
+export const getImageBlob = http.get(
 	`${CLOUDFLARE_BASE_URL}/accounts/:accountId/images/v1/:imageId/blob`,
-	async ({ params }) => {
-		if (!params.imageId) {
-			return new HttpResponse("Error: Image ID is required", {
-				status: 400,
-			});
+	({ params }) => {
+		if (params.imageId === "not-found") {
+			return failure(404, 5404, "Image not found");
 		}
-
-		return new HttpResponse(new Blob(), {
-			headers: {
-				"Content-Type": "image/jpeg",
-			},
+		return new HttpResponse(new Blob([new Uint8Array([0xff, 0xd8, 0xff])]), {
+			headers: { "Content-Type": "image/jpeg" },
 		});
 	},
 );

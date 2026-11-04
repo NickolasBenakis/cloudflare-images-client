@@ -1,0 +1,114 @@
+name: Cloudflare API drift
+
+# Weekly: re-extract the Images operations this client uses from Cloudflare's
+# published OpenAPI spec and compare with the pinned copy. If anything changed,
+# open (or update) a single "api-drift" issue with a readable diff and whether
+# the contract tests still pass against the new spec.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: api-drift
+  cancel-in-progress: true
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+
+      - name: Refresh spec
+        run: |
+          cp openapi/cloudflare-images.json "$RUNNER_TEMP/pinned.json"
+          npm run openapi:update
+
+      - name: Compare with pinned copy
+        id: diff
+        run: |
+          if git diff --quiet -- openapi/; then
+            echo "No drift: pinned spec matches Cloudflare's current spec."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "hash=$(sha256sum openapi/cloudflare-images.json | cut -c1-16)" >> "$GITHUB_OUTPUT"
+          node scripts/openapi-diff.mjs "$RUNNER_TEMP/pinned.json" openapi/cloudflare-images.json > "$RUNNER_TEMP/diff.md"
+          cat "$RUNNER_TEMP/diff.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run contract tests against the new spec
+        id: contract
+        if: steps.diff.outputs.changed == 'true'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm run test:contract 2>&1 | tee "$RUNNER_TEMP/contract.log"
+
+      - uses: actions/upload-artifact@v7
+        if: steps.diff.outputs.changed == 'true'
+        with:
+          name: cloudflare-images-openapi
+          path: openapi/cloudflare-images.json
+          retention-days: 30
+
+      - name: Open or update drift issue
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HASH: ${{ steps.diff.outputs.hash }}
+          CONTRACT: ${{ steps.contract.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          MARKER="<!-- spec-hash: $HASH -->"
+          if [ "$CONTRACT" = "success" ]; then
+            VERDICT="✅ The client still conforms to the new spec (contract tests pass)."
+          else
+            VERDICT="❌ Contract tests fail against the new spec. The client or its mocks need updating."
+          fi
+          {
+            echo "$MARKER"
+            echo "Cloudflare's OpenAPI spec changed for operations this client uses."
+            echo
+            echo "$VERDICT"
+            echo
+            cat "$RUNNER_TEMP/diff.md"
+            if [ "$CONTRACT" != "success" ]; then
+              echo
+              echo "<details><summary>Contract test output</summary>"
+              echo
+              echo '```'
+              grep -E "FAIL|AssertionError|\+   \"|Tests " "$RUNNER_TEMP/contract.log" | head -60
+              echo '```'
+              echo "</details>"
+            fi
+            echo
+            echo "**To resolve:** run \`npm run openapi:update && npm test\` locally, fix anything that fails, and commit the updated \`openapi/cloudflare-images.json\` in a PR that says \`Fixes #<this issue>\`."
+            echo
+            echo "[Workflow run]($RUN_URL) · the refreshed spec is attached as an artifact."
+          } > "$RUNNER_TEMP/body.md"
+
+          gh label create api-drift --color D93F0B \
+            --description "Cloudflare API spec changed" 2>/dev/null || true
+
+          EXISTING=$(gh issue list --label api-drift --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -z "$EXISTING" ]; then
+            gh issue create --title "Cloudflare Images API spec changed" \
+              --label api-drift --body-file "$RUNNER_TEMP/body.md"
+          elif gh issue view "$EXISTING" --json body,comments \
+               --jq '[.body, .comments[].body] | join("\n")' | grep -qF "$MARKER"; then
+            echo "Issue #$EXISTING already reports this exact spec version."
+          else
+            gh issue comment "$EXISTING" --body-file "$RUNNER_TEMP/body.md"
+          fi

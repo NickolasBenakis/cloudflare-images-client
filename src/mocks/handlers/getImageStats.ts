@@ -1,20 +1,8 @@
-import { HttpResponse, http } from "msw";
+import { http } from "msw";
 import { CLOUDFLARE_BASE_URL } from "../../config";
-import type { CloudflareImageStatsResponse } from "../../lib/cloudflareImagesClient";
+import { success } from "../fixtures";
 
-export const getImageStats = http.get<
-	{ accountId: string },
-	CloudflareImageStatsResponse
->(`${CLOUDFLARE_BASE_URL}/accounts/:accountId/images/v1/stats`, async () => {
-	return HttpResponse.json({
-		errors: [],
-		messages: [],
-		success: true,
-		result: {
-			count: {
-				allowed: 1000,
-				current: 100,
-			},
-		},
-	});
-});
+export const getImageStats = http.get(
+	`${CLOUDFLARE_BASE_URL}/accounts/:accountId/images/v1/stats`,
+	() => success({ count: { allowed: 100000, current: 1000 } }),
+);
