@@ -18,6 +18,14 @@ export const OPERATIONS = {
 	"/accounts/{account_id}/images/v1/{image_id}": ["get", "patch", "delete"],
 	"/accounts/{account_id}/images/v1/{image_id}/blob": ["get"],
 	"/accounts/{account_id}/images/v2": ["get"],
+	"/accounts/{account_id}/images/v2/direct_upload": ["post"],
+	"/accounts/{account_id}/images/v1/variants": ["get", "post"],
+	"/accounts/{account_id}/images/v1/variants/{variant_id}": [
+		"get",
+		"patch",
+		"delete",
+	],
+	"/accounts/{account_id}/images/v1/keys": ["get"],
 };
 
 const OUTPUT = new URL("../openapi/cloudflare-images.json", import.meta.url);

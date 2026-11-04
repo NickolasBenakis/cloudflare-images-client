@@ -36,9 +36,10 @@ console.log(result?.variants); // ["https://imagedelivery.net/<hash>/<id>/public
 
 ## Why this package
 
-- **Small.** No runtime dependencies and about 9.5 kB published. It uses the platform's own `fetch`, `FormData` and `Blob`.
+- **Small.** No runtime dependencies, about 2 kB gzipped in your bundle. It uses the platform's own `fetch`, `FormData`, `Blob` and Web Crypto.
 - **Runs anywhere.** Node.js 18+, Cloudflare Workers, Deno, Bun and modern browsers. CI checks the Workers bundle on every change.
 - **Typed.** Written in TypeScript, with types for every request and response. Ships ESM and CommonJS builds.
+- **Covers the hard parts.** Signed URLs for private images and direct browser uploads, both of which otherwise need hand-written code.
 - **Checked against Cloudflare's own API spec.** Contract tests validate every request and response shape against [Cloudflare's published OpenAPI spec](https://github.com/cloudflare/api-schemas), and a weekly job flags any change Cloudflare makes.
 - **Verifiable releases.** Every version is published from GitHub Actions with [npm provenance](https://docs.npmjs.com/generating-provenance-statements), so you can trace it back to the exact commit it was built from.
 
@@ -124,6 +125,63 @@ const { result: stats } = await images.getImageStatistics();
 console.log(`${stats.count.current} / ${stats.count.allowed} images stored`);
 ```
 
+### Private images (signed URLs)
+
+Images uploaded with `requireSignedURLs: true` can only be viewed through a signed, expiring URL. Sign on your server, because the key must stay secret. Signing uses Web Crypto, so it works in Node.js, Workers, Deno and Bun.
+
+```ts
+import { signImageUrl } from "cloudflare-images-client";
+
+const { result: image } = await images.getImageDetails("image-id");
+
+const url = await signImageUrl(image!.variants[0], {
+	key: process.env.CLOUDFLARE_IMAGES_SIGNING_KEY ?? "", // Images → Keys in the dashboard
+	expiresIn: 60 * 60, // seconds; defaults to 1 hour
+});
+// https://imagedelivery.net/<hash>/<id>/public?exp=1767229200&sig=3f1a…
+```
+
+No image object at hand? Build the URL yourself with `imageDeliveryUrl({ accountHash, imageId, variant })`. The account hash is shown on the Images dashboard and isn't your account ID. You can also fetch your keys with `images.listSigningKeys()`.
+
+### Direct uploads from the browser
+
+Let users upload straight to Cloudflare without your API token ever reaching the browser. Your server creates a one-time upload URL:
+
+```ts
+// Server
+const { result } = await images.createDirectUpload({
+	metadata: { owner: "user_123" },
+	expiry: new Date(Date.now() + 10 * 60 * 1000), // default: 30 minutes
+});
+// → { id: "2cdc28f0-…", uploadURL: "https://upload.imagedelivery.net/…" }
+```
+
+The browser posts the file to `uploadURL`. The field must be named `file`, and no auth header is needed:
+
+```ts
+// Browser
+const form = new FormData();
+form.append("file", fileInput.files[0]);
+await fetch(uploadURL, { method: "POST", body: form });
+```
+
+The image ID exists right away, but the image stays a draft until the upload finishes. Protect the endpoint that hands out upload URLs, with auth or [Turnstile](https://developers.cloudflare.com/turnstile/), so bots can't fill your storage.
+
+### Variants
+
+```ts
+await images.createVariant({
+	id: "thumbnail",
+	options: { fit: "cover", width: 200, height: 200, metadata: "none" },
+});
+
+const { result } = await images.listVariants(); // { variants: { public: {…}, thumbnail: {…} } }
+await images.updateVariant("thumbnail", {
+	options: { fit: "cover", width: 300, height: 300, metadata: "none" },
+});
+await images.deleteVariant("thumbnail");
+```
+
 ### CommonJS
 
 ```js
@@ -143,7 +201,21 @@ const { CloudflareImagesClient } = require("cloudflare-images-client");
 | `updateImage(imageId, { metadata?, requireSignedURLs? })`                             | Update an image's metadata or signed-URL setting.                                                                      |
 | `deleteOneImage(imageId)`                                                             | Delete an image.                                                                                                       |
 | `deleteManyImages(imageIds)`                                                          | Delete several images, one request each, in order.                                                                     |
+| `createDirectUpload({ id?, metadata?, requireSignedURLs?, expiry?, creator? })`       | Create a one-time URL a browser can upload to without your API token.                                                  |
+| `listVariants()`                                                                      | List variants, keyed by name.                                                                                          |
+| `getVariant(variantId)`                                                               | Get one variant.                                                                                                       |
+| `createVariant({ id, options, neverRequireSignedURLs? })`                             | Create a variant (`fit`, `width`, `height`, `metadata`).                                                               |
+| `updateVariant(variantId, { options, neverRequireSignedURLs? })`                      | Change a variant's options.                                                                                            |
+| `deleteVariant(variantId)`                                                            | Delete a variant.                                                                                                      |
+| `listSigningKeys()`                                                                   | List the keys used to sign private image URLs.                                                                         |
 | `deleteDuplicateImages()`                                                             | Delete images that share a filename, keeping one of each. Looks at the first page of `listImages` (up to 1000 images). |
+
+Standalone helpers, no client or API token needed:
+
+| Function                                                        | Description                                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `signImageUrl(url, { key, expiresIn?, expiresAt? })`            | Sign a delivery URL for a private image. Returns the URL with `exp` and `sig`. |
+| `imageDeliveryUrl({ accountHash, imageId, variant, baseUrl? })` | Build an `imagedelivery.net` URL.                                              |
 
 ### Responses and errors
 
@@ -174,6 +246,9 @@ import type {
 	CloudflareImageResponse,
 	CloudflareImagesResponse,
 	CloudflareListImagesQueryParams,
+	CloudflareVariant,
+	CreateDirectUploadProps,
+	SignImageUrlOptions,
 	UploadImageFromFileProps,
 } from "cloudflare-images-client";
 ```

@@ -73,10 +73,11 @@ function compile(schema: Json) {
 	);
 }
 
-function format(errors: ErrorObject[] | null | undefined) {
-	return (errors ?? [])
-		.map((e) => `${e.instancePath || "(root)"} ${e.message}`)
-		.join("; ");
+/** One message per schema error, each prefixed so it can be matched on its own. */
+function format(prefix: string, errors: ErrorObject[] | null | undefined) {
+	return (errors ?? []).map(
+		(e) => `${prefix} ${e.instancePath || "(root)"} ${e.message}`,
+	);
 }
 
 const routes = Object.entries(spec.paths).map(([template, item]) => ({
@@ -108,8 +109,27 @@ function pickResponse(operation: Operation, status: number) {
 	return r[String(status)] ?? r[`${String(status)[0]}XX`] ?? r.default;
 }
 
+/**
+ * Places where Cloudflare's published spec disagrees with Cloudflare's own docs
+ * and real responses. Each entry needs a reason; keep this list short.
+ */
+const KNOWN_SPEC_ERRATA: { pattern: RegExp; reason: string }[] = [
+	{
+		pattern:
+			/^POST \/accounts\/\{account_id\}\/images\/v2\/direct_upload: 200 response body \/result\/id must NOT have more than 32 characters$/,
+		reason:
+			"Spec says maxLength 32, but the docs' example direct upload ID is 35 characters (https://developers.cloudflare.com/images/upload-images/direct-creator-upload/).",
+	},
+];
+
 /** Returns a list of contract violations; empty means the exchange conforms. */
 export function validateExchange(ex: Exchange): string[] {
+	return collectViolations(ex).filter(
+		(problem) => !KNOWN_SPEC_ERRATA.some((e) => e.pattern.test(problem)),
+	);
+}
+
+function collectViolations(ex: Exchange): string[] {
 	const problems: string[] = [];
 	const { template, operation } = findOperation(ex.method, ex.url);
 	const label = `${ex.method} ${template}`;
@@ -127,10 +147,10 @@ export function validateExchange(ex: Exchange): string[] {
 			problems.push(`${label}: query parameter "${name}" is not in the spec`);
 			continue;
 		}
-		const check = queryAjv.compile(inline(schema));
+		const check = queryAjv.compile(inline(schema) as Json);
 		if (!check(value)) {
 			problems.push(
-				`${label}: query "${name}=${value}" ${format(check.errors)}`,
+				...format(`${label}: query "${name}=${value}"`, check.errors),
 			);
 		}
 	}
@@ -155,7 +175,7 @@ export function validateExchange(ex: Exchange): string[] {
 			}
 			const check = compile(bodySchema);
 			if (!check(ex.requestBody)) {
-				problems.push(`${label}: request body ${format(check.errors)}`);
+				problems.push(...format(`${label}: request body`, check.errors));
 			}
 		}
 	}
@@ -183,7 +203,7 @@ export function validateExchange(ex: Exchange): string[] {
 		const check = compile(schema);
 		if (!check(ex.responseBody)) {
 			problems.push(
-				`${label}: ${ex.status} response body ${format(check.errors)}`,
+				...format(`${label}: ${ex.status} response body`, check.errors),
 			);
 		}
 	}

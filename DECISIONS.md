@@ -90,3 +90,35 @@
 - **Also included:** the release tag format fix (no `v` prefix, matching `1.1.x`),
   which missed PR #7.
 - **Version bumped to 1.2.1** so merging ships the metadata fix through the automated release.
+
+# Decisions — 1.3.0: signed URLs, direct uploads, variants
+
+- **`signImageUrl` is a standalone function, not a client method.** Signing needs
+  only the key, not the API token. It takes any delivery URL, including the
+  `variants` URLs the API already returns, so users rarely need the account hash.
+  `imageDeliveryUrl()` covers the cases where they do.
+- **Algorithm follows Cloudflare's docs exactly:** HMAC-SHA256 over
+  `pathname?query` (existing query params plus `exp`), hex-encoded into `sig`.
+  Tests compare against an independent `node:crypto` implementation, and CI checks
+  signing against the installed tarball on Node 18 and 20.
+- **Node 18 fallback:** Node 18 has no global `crypto` by default, so signing lazily
+  imports `node:crypto`'s `webcrypto`. It uses the same non-literal `import()` trick
+  as the `fs` fallback, so Workers bundles stay free of Node built-ins.
+- **Default expiry is 1 hour.** It's short enough to be safe and long enough for a page view.
+- **New methods share one private `request()` helper.** The existing methods were left
+  as they are to keep this PR's diff about the new features only.
+- **Variant `options` fields are all required in the types** (`fit`, `width`,
+  `height`, `metadata`), matching Cloudflare's spec.
+- **Spec erratum:** the spec limits a direct upload `result.id` to 32 characters,
+  but Cloudflare's docs show a 35-character ID. Contract tests keep a short,
+  documented `KNOWN_SPEC_ERRATA` list for cases like this, instead of loosening
+  the check. The validator now reports one violation per schema error, so each
+  erratum is matched exactly.
+- **MSW handler order:** `/v1/variants` and `/v1/keys` would match `/v1/:imageId`,
+  so their handlers are registered first.
+- **Fixed a false-drift bug from #8:** the committed spec had been reformatted by
+  Biome, but the extractor writes its own format. So the weekly job's `git diff`
+  would have reported a change every Monday even when the content was identical
+  (reproduced against `main`). Now the spec is excluded from Biome and the
+  workflow compares JSON content via `openapi-diff.mjs`.
+- **Review fixes (fresh-eyes review of the diff):** `imageDeliveryUrl` keeps `/` in custom IDs and `=`/`,` in flexible variants instead of percent-encoding them. Signing rejects past expiries, millisecond timestamps (> 1e11) and sub-second `expiresIn`. CI now checks CJS signing on Node 18/20 too.

@@ -77,6 +77,66 @@ export interface CloudflareImageStatsResponse extends CloudflareApiResponse {
 	};
 }
 
+export interface CreateDirectUploadProps {
+	/** Optional custom image ID. Images with custom IDs can't require signed URLs. */
+	id?: string;
+	metadata?: Record<string, unknown>;
+	requireSignedURLs?: boolean;
+	/** When the upload URL stops working. Cloudflare's default is 30 minutes from now. */
+	expiry?: Date | string;
+	/** Your internal user ID for whoever will upload, stored on the image. */
+	creator?: string;
+}
+
+export interface CloudflareDirectUploadResponse extends CloudflareApiResponse {
+	result: {
+		/** The ID the image will have. It's a draft until the upload completes. */
+		id: string;
+		/** One-time URL the browser POSTs the file to (multipart field `file`). */
+		uploadURL: string;
+	} | null;
+}
+
+export interface CloudflareVariantOptions {
+	fit: "scale-down" | "contain" | "cover" | "crop" | "pad";
+	width: number;
+	height: number;
+	/** What EXIF metadata to keep in delivered images. */
+	metadata: "keep" | "copyright" | "none";
+}
+
+export interface CloudflareVariant {
+	id: string;
+	options: CloudflareVariantOptions;
+	/** Serve this variant publicly even for images that require signed URLs. */
+	neverRequireSignedURLs?: boolean;
+}
+
+export interface CreateVariantProps {
+	/** Variant name used in delivery URLs, e.g. `"thumbnail"`. */
+	id: string;
+	options: CloudflareVariantOptions;
+	neverRequireSignedURLs?: boolean;
+}
+
+export interface UpdateVariantProps {
+	options: CloudflareVariantOptions;
+	neverRequireSignedURLs?: boolean;
+}
+
+export interface CloudflareVariantResponse extends CloudflareApiResponse {
+	result: { variant: CloudflareVariant } | null;
+}
+
+export interface CloudflareVariantsResponse extends CloudflareApiResponse {
+	/** Variants keyed by name. */
+	result: { variants: Record<string, CloudflareVariant> } | null;
+}
+
+export interface CloudflareSigningKeysResponse extends CloudflareApiResponse {
+	result: { keys: { name: string; value: string }[] } | null;
+}
+
 interface ICloudflareClient {
 	uploadImageFromUrl: (
 		props: UploadImageFromUrlProps,
@@ -101,6 +161,20 @@ interface ICloudflareClient {
 		imageIds: string[],
 	) => Promise<CloudflareDeleteImageResponse[]>;
 	deleteDuplicateImages: () => Promise<void>;
+	createDirectUpload: (
+		props?: CreateDirectUploadProps,
+	) => Promise<CloudflareDirectUploadResponse>;
+	listVariants: () => Promise<CloudflareVariantsResponse>;
+	getVariant: (variantId: string) => Promise<CloudflareVariantResponse>;
+	createVariant: (
+		props: CreateVariantProps,
+	) => Promise<CloudflareVariantResponse>;
+	updateVariant: (
+		variantId: string,
+		props: UpdateVariantProps,
+	) => Promise<CloudflareVariantResponse>;
+	deleteVariant: (variantId: string) => Promise<CloudflareDeleteImageResponse>;
+	listSigningKeys: () => Promise<CloudflareSigningKeysResponse>;
 }
 class CloudflareImagesClient implements ICloudflareClient {
 	private baseUrl = CLOUDFLARE_BASE_URL;
@@ -361,6 +435,124 @@ class CloudflareImagesClient implements ICloudflareClient {
 		}
 
 		await this.deleteManyImages(imageUrlsToDelete);
+	}
+
+	private async request<T>(
+		method: string,
+		path: string,
+		body: FormData | Record<string, unknown> | undefined,
+		errorMessage: string,
+	): Promise<T> {
+		const headers: Record<string, string> = {
+			Authorization: `Bearer ${this.apiToken}`,
+		};
+		let payload: BodyInit | undefined;
+		if (body instanceof FormData) {
+			payload = body;
+		} else if (body !== undefined) {
+			headers["Content-Type"] = "application/json";
+			payload = JSON.stringify(body);
+		}
+		try {
+			const response = await fetch(
+				`${this.baseUrl}/accounts/${this.accountId}/images${path}`,
+				{ method, headers, body: payload },
+			);
+			return (await response.json()) as T;
+		} catch (error) {
+			console.error("error", error);
+			throw new Error(errorMessage);
+		}
+	}
+
+	/**
+	 * Creates a one-time upload URL so a browser can upload directly to
+	 * Cloudflare without seeing your API token. Call this on your server.
+	 */
+	async createDirectUpload(props: CreateDirectUploadProps = {}) {
+		const formData = new FormData();
+		if (props.id !== undefined) formData.append("id", props.id);
+		if (props.creator !== undefined) formData.append("creator", props.creator);
+		if (props.metadata !== undefined) {
+			formData.append("metadata", JSON.stringify(props.metadata));
+		}
+		if (props.requireSignedURLs !== undefined) {
+			formData.append(
+				"requireSignedURLs",
+				JSON.stringify(props.requireSignedURLs),
+			);
+		}
+		if (props.expiry !== undefined) {
+			const expiry =
+				props.expiry instanceof Date
+					? props.expiry.toISOString()
+					: props.expiry;
+			formData.append("expiry", expiry);
+		}
+		return this.request<CloudflareDirectUploadResponse>(
+			"POST",
+			"/v2/direct_upload",
+			formData,
+			"Error creating direct upload URL",
+		);
+	}
+
+	async listVariants() {
+		return this.request<CloudflareVariantsResponse>(
+			"GET",
+			"/v1/variants",
+			undefined,
+			"Error listing variants",
+		);
+	}
+
+	async getVariant(variantId: string) {
+		if (!variantId) throw new Error("Variant ID is required");
+		return this.request<CloudflareVariantResponse>(
+			"GET",
+			`/v1/variants/${encodeURIComponent(variantId)}`,
+			undefined,
+			"Error getting variant",
+		);
+	}
+
+	async createVariant(props: CreateVariantProps) {
+		return this.request<CloudflareVariantResponse>(
+			"POST",
+			"/v1/variants",
+			{ ...props },
+			"Error creating variant",
+		);
+	}
+
+	async updateVariant(variantId: string, props: UpdateVariantProps) {
+		if (!variantId) throw new Error("Variant ID is required");
+		return this.request<CloudflareVariantResponse>(
+			"PATCH",
+			`/v1/variants/${encodeURIComponent(variantId)}`,
+			{ ...props },
+			"Error updating variant",
+		);
+	}
+
+	async deleteVariant(variantId: string) {
+		if (!variantId) throw new Error("Variant ID is required");
+		return this.request<CloudflareDeleteImageResponse>(
+			"DELETE",
+			`/v1/variants/${encodeURIComponent(variantId)}`,
+			undefined,
+			"Error deleting variant",
+		);
+	}
+
+	/** Lists the keys used to sign URLs for private images. */
+	async listSigningKeys() {
+		return this.request<CloudflareSigningKeysResponse>(
+			"GET",
+			"/v1/keys",
+			undefined,
+			"Error listing signing keys",
+		);
 	}
 }
 

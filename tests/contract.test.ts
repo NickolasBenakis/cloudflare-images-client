@@ -100,13 +100,20 @@ describe("Cloudflare Images API contract", () => {
 		);
 		expect(operations.sort()).toMatchInlineSnapshot(`
 			[
+			  "DELETE /accounts/{account_id}/images/v1/variants/{variant_id}",
 			  "DELETE /accounts/{account_id}/images/v1/{image_id}",
+			  "GET /accounts/{account_id}/images/v1/keys",
 			  "GET /accounts/{account_id}/images/v1/stats",
+			  "GET /accounts/{account_id}/images/v1/variants",
+			  "GET /accounts/{account_id}/images/v1/variants/{variant_id}",
 			  "GET /accounts/{account_id}/images/v1/{image_id}",
 			  "GET /accounts/{account_id}/images/v1/{image_id}/blob",
 			  "GET /accounts/{account_id}/images/v2",
+			  "PATCH /accounts/{account_id}/images/v1/variants/{variant_id}",
 			  "PATCH /accounts/{account_id}/images/v1/{image_id}",
 			  "POST /accounts/{account_id}/images/v1",
+			  "POST /accounts/{account_id}/images/v1/variants",
+			  "POST /accounts/{account_id}/images/v2/direct_upload",
 			]
 		`);
 	});
@@ -187,6 +194,69 @@ describe("Cloudflare Images API contract", () => {
 
 	test("deleteOneImage error", async () => {
 		await client.deleteOneImage("not-found");
+		await expectConforms();
+	});
+
+	test("createDirectUpload with defaults", async () => {
+		await client.createDirectUpload();
+		await expectConforms();
+	});
+
+	test("createDirectUpload with every option", async () => {
+		await client.createDirectUpload({
+			id: "user-avatar-123",
+			metadata: { owner: "user_123" },
+			// Custom IDs can't require signed URLs, so keep this false here.
+			requireSignedURLs: false,
+			expiry: new Date(Date.now() + 10 * 60 * 1000),
+			creator: "user_123",
+		});
+		await expectConforms();
+	});
+
+	test("createDirectUpload for a private image", async () => {
+		await client.createDirectUpload({ requireSignedURLs: true });
+		await expectConforms();
+	});
+
+	test("listVariants", async () => {
+		await client.listVariants();
+		await expectConforms();
+	});
+
+	test("getVariant", async () => {
+		await client.getVariant("thumbnail");
+		await expectConforms();
+	});
+
+	test("getVariant error", async () => {
+		await client.getVariant("not-found");
+		await expectConforms();
+	});
+
+	test("createVariant", async () => {
+		await client.createVariant({
+			id: "hero",
+			options: { fit: "cover", width: 1920, height: 1080, metadata: "none" },
+			neverRequireSignedURLs: true,
+		});
+		await expectConforms();
+	});
+
+	test("updateVariant", async () => {
+		await client.updateVariant("hero", {
+			options: { fit: "contain", width: 1280, height: 720, metadata: "keep" },
+		});
+		await expectConforms();
+	});
+
+	test("deleteVariant", async () => {
+		await client.deleteVariant("hero");
+		await expectConforms();
+	});
+
+	test("listSigningKeys", async () => {
+		await client.listSigningKeys();
 		await expectConforms();
 	});
 });
