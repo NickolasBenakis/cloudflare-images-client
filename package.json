@@ -32,6 +32,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:contract": "vitest run tests/contract.test.ts",
+		"smoke:live": "node --env-file=.env.live node_modules/vitest/vitest.mjs run --config vitest.live.config.ts",
 		"test:watch": "vitest",
 		"coverage": "vitest run --coverage",
 		"lint": "biome ci .",

@@ -147,7 +147,7 @@ function collectViolations(ex: Exchange): string[] {
 			problems.push(`${label}: query parameter "${name}" is not in the spec`);
 			continue;
 		}
-		const check = queryAjv.compile(inline(schema));
+		const check = queryAjv.compile(inline(schema) as Json);
 		if (!check(value)) {
 			problems.push(
 				...format(`${label}: query "${name}=${value}"`, check.errors),
