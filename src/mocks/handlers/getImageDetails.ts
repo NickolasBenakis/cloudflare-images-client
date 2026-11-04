@@ -1,6 +1,6 @@
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
 import { CLOUDFLARE_BASE_URL } from "../../config";
-import { CloudflareImageResponse } from "../../lib/cloudflareImagesClient";
+import type { CloudflareImageResponse } from "../../lib/cloudflareImagesClient";
 
 export const getImageDetails = http.get<
 	{ accountId: string; imageId: string },

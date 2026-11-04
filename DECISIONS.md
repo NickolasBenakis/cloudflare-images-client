@@ -21,7 +21,7 @@
   Added fallback dummy IDs and `onUnhandledRequest: "error"` so tests never hit
   the real API. CI now actually runs `npm test` (it was commented out).
 - **Replaced the `publish` script with `prepublishOnly`.** A script named `publish`
-  is an npm lifecycle hook that runs *after* `npm publish`, so `npm run publish`
+  is an npm lifecycle hook that runs _after_ `npm publish`, so `npm run publish`
   calling `npm publish` was a footgun. `prepublishOnly` now builds, tests and
   checks the package before every publish.
 - **Fixed README usage** — `require('cloudflare-images-client')` returns the module

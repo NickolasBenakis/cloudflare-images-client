@@ -37,19 +37,19 @@ import { CloudflareImagesClient } from "cloudflare-images-client";
 // or: const { CloudflareImagesClient } = require("cloudflare-images-client");
 
 const client = new CloudflareImagesClient({
-  apiToken: "your-api-key", // https://dash.cloudflare.com/profile/api-tokens
-  accountId: "account-id",
+	apiToken: "your-api-key", // https://dash.cloudflare.com/profile/api-tokens
+	accountId: "account-id",
 });
 
 // Upload an image from a URL
 const result = await client.uploadImageFromUrl({
-  url: "DEFAULT_IMAGE_URL.jpeg",
+	url: "DEFAULT_IMAGE_URL.jpeg",
 });
 
 // Upload file contents (works in Node, Cloudflare Workers, Deno and browsers)
 await client.uploadImageFromFile({
-  file: blobOrUint8Array,
-  fileName: "photo.png",
+	file: blobOrUint8Array,
+	fileName: "photo.png",
 });
 
 // Upload from a path on disk (Node.js only)
@@ -59,7 +59,9 @@ await client.uploadImageFromFile({ filePath: "./photo.png" });
 Requires a runtime with global `fetch`, `FormData` and `Blob` (Node.js 18+, Cloudflare Workers, Deno, Bun, modern browsers).
 
 ## Contributing
+
 Contributions are welcome! Please read the contributing guidelines before getting started.
 
 ## License
+
 This project is licensed under the MIT License - see the LICENSE file for details.

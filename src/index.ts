@@ -3,12 +3,12 @@ export type {
 	CloudflareClientOptions,
 	CloudflareDeleteImageResponse,
 	CloudflareImageResponse,
-	CloudflareImagesResponse,
 	CloudflareImageStatsResponse,
+	CloudflareImagesResponse,
 	CloudflareListImagesQueryParams,
-	UploadImageFromUrlProps,
-	UploadImageFromFileProps,
 	UploadImageFileData,
+	UploadImageFromFileProps,
+	UploadImageFromUrlProps,
 	UploadImageProps,
 } from "./lib/cloudflareImagesClient";
 

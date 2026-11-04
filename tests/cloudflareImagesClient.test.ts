@@ -1,210 +1,206 @@
-require('dotenv').config();
-import { readFileSync } from 'node:fs';
-import path from 'path';
-import { describe, expect, test } from 'vitest';
-import { CloudflareImagesClient } from '../src/index';
+require("dotenv").config();
 
-describe('Cloudflare Client', async () => {
-  const cloudflareClient = new CloudflareImagesClient({
-    accountId: process.env.CLOUDFLARE_ACCOUNT_ID || 'test-account-id',
-    apiToken: process.env.CLOUDFLARE_API_TOKEN || 'test-api-token',
-  });
-  let uploadedTestImageId = '';
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { describe, expect, test } from "vitest";
+import { CloudflareImagesClient } from "../src/index";
 
-  describe('uploadImage From Url', async () => {
-    test('success response', async () => {
-      const response = await cloudflareClient.uploadImageFromUrl({
-        url: 'https://images.squarespace-cdn.com/content/v1/60f1a490a90ed8713c41c36c/1629223610791-LCBJG5451DRKX4WOB4SP/37-design-powers-url-structure.jpeg',
-      });
+describe("Cloudflare Client", async () => {
+	const cloudflareClient = new CloudflareImagesClient({
+		accountId: process.env.CLOUDFLARE_ACCOUNT_ID || "test-account-id",
+		apiToken: process.env.CLOUDFLARE_API_TOKEN || "test-api-token",
+	});
+	let uploadedTestImageId = "";
 
-      expect(response.errors).toEqual([]);
-      expect(response.messages).toEqual([]);
-      expect(response.success).toBe(true);
-      expect(response.result).toBeTypeOf('object');
-      expect(response.result!.filename).toBeTypeOf('string');
-      expect(response.result!.id).toBeTypeOf('string');
-      expect(response.result!.meta).toBeTypeOf('object');
-      expect(response.result!.requireSignedURLs).toBe(false);
-      expect(response.result!.uploaded).toBeTypeOf('string');
-      expect(response.result!.variants.length).toBeGreaterThan(0);
+	describe("uploadImage From Url", async () => {
+		test("success response", async () => {
+			const response = await cloudflareClient.uploadImageFromUrl({
+				url: "https://images.squarespace-cdn.com/content/v1/60f1a490a90ed8713c41c36c/1629223610791-LCBJG5451DRKX4WOB4SP/37-design-powers-url-structure.jpeg",
+			});
 
-      uploadedTestImageId = response.result!.id;
-    });
+			expect(response.errors).toEqual([]);
+			expect(response.messages).toEqual([]);
+			expect(response.success).toBe(true);
+			expect(response.result).toBeTypeOf("object");
+			expect(response.result!.filename).toBeTypeOf("string");
+			expect(response.result!.id).toBeTypeOf("string");
+			expect(response.result!.meta).toBeTypeOf("object");
+			expect(response.result!.requireSignedURLs).toBe(false);
+			expect(response.result!.uploaded).toBeTypeOf("string");
+			expect(response.result!.variants.length).toBeGreaterThan(0);
 
-    test('error response', async () => {
-      const response = await cloudflareClient.uploadImageFromUrl({
-        url: '',
-        metadata: {},
-      });
+			uploadedTestImageId = response.result!.id;
+		});
 
-      expect(response.errors.length).toBeGreaterThan(0);
-    });
-  });
+		test("error response", async () => {
+			const response = await cloudflareClient.uploadImageFromUrl({
+				url: "",
+				metadata: {},
+			});
 
-  describe('get Image statistics', async () => {
-    test('success response', async () => {
-      const response = await cloudflareClient.getImageStatistics();
+			expect(response.errors.length).toBeGreaterThan(0);
+		});
+	});
 
-      expect(response.errors).toEqual([]);
-      expect(response.messages).toEqual([]);
-      expect(response.success).toBe(true);
-      expect(response.result.count.allowed).toBeTypeOf('number');
-      expect(response.result.count.current).toBeTypeOf('number');
-    });
-  });
+	describe("get Image statistics", async () => {
+		test("success response", async () => {
+			const response = await cloudflareClient.getImageStatistics();
 
-  describe('get Image details', async () => {
-    test('success response', async () => {
-      const response = await cloudflareClient.getImageDetails(
-        uploadedTestImageId
-      );
+			expect(response.errors).toEqual([]);
+			expect(response.messages).toEqual([]);
+			expect(response.success).toBe(true);
+			expect(response.result.count.allowed).toBeTypeOf("number");
+			expect(response.result.count.current).toBeTypeOf("number");
+		});
+	});
 
-      expect(response.errors).toEqual([]);
-      expect(response.messages).toEqual([]);
-      expect(response.success).toBe(true);
-      expect(response.result).toBeTypeOf('object');
-      expect(response.result!.filename).toBeTypeOf('string');
-      expect(response.result!.id).toBeTypeOf('string');
-      expect(response.result!.meta).toBeTypeOf('object');
-      expect(response.result!.requireSignedURLs).toBe(false);
-      expect(response.result!.uploaded).toBeTypeOf('string');
-      expect(response.result!.variants.length).toBeGreaterThan(0);
-    });
+	describe("get Image details", async () => {
+		test("success response", async () => {
+			const response =
+				await cloudflareClient.getImageDetails(uploadedTestImageId);
 
-    test('error response with no image url', async () => {
-      const response = await cloudflareClient.getImageDetails('not-found');
+			expect(response.errors).toEqual([]);
+			expect(response.messages).toEqual([]);
+			expect(response.success).toBe(true);
+			expect(response.result).toBeTypeOf("object");
+			expect(response.result!.filename).toBeTypeOf("string");
+			expect(response.result!.id).toBeTypeOf("string");
+			expect(response.result!.meta).toBeTypeOf("object");
+			expect(response.result!.requireSignedURLs).toBe(false);
+			expect(response.result!.uploaded).toBeTypeOf("string");
+			expect(response.result!.variants.length).toBeGreaterThan(0);
+		});
 
-      expect(response.errors.length).toBeGreaterThan(0);
-    });
-  });
+		test("error response with no image url", async () => {
+			const response = await cloudflareClient.getImageDetails("not-found");
 
-  describe('get Image blob', async () => {
-    test('success response', async () => {
-      const response = await cloudflareClient.getImageAsBlob(
-        uploadedTestImageId
-      );
+			expect(response.errors.length).toBeGreaterThan(0);
+		});
+	});
 
-      expect(response).toBeTypeOf('object');
-      expect(response.type).includes('image');
-    });
+	describe("get Image blob", async () => {
+		test("success response", async () => {
+			const response =
+				await cloudflareClient.getImageAsBlob(uploadedTestImageId);
 
-    test('error response with no image url', async () => {
-      try {
-        const response = await cloudflareClient.getImageAsBlob('');
-      } catch (error) {
-        expect(Error(error).message).toEqual('Error: Image ID is required');
-      }
-    });
-  });
+			expect(response).toBeTypeOf("object");
+			expect(response.type).includes("image");
+		});
 
-  describe('list images', async () => {
-    test('success response without query params', async () => {
-      const response = await cloudflareClient.listImages();
+		test("error response with no image url", async () => {
+			await expect(cloudflareClient.getImageAsBlob("")).rejects.toThrow(
+				"Image ID is required",
+			);
+		});
+	});
 
-      expect(response.errors).toEqual([]);
-      expect(response.messages).toEqual([]);
-      expect(response.success).toBe(true);
-      expect(response.result?.continuation_token).oneOf(['string', null]);
-      expect(response.result?.images).toBeTypeOf('object');
-      expect(response.result?.images.length).toBeGreaterThanOrEqual(0);
-    });
-  });
+	describe("list images", async () => {
+		test("success response without query params", async () => {
+			const response = await cloudflareClient.listImages();
 
-  describe('Upload Image from file', () => {
-    test('uploadImage From File', async () => {
-      const filePath = path.join(__dirname, 'images', 'test.png');
-      const response = await cloudflareClient.uploadImageFromFile({
-        filePath,
-        metadata: {},
-      });
+			expect(response.errors).toEqual([]);
+			expect(response.messages).toEqual([]);
+			expect(response.success).toBe(true);
+			expect(response.result?.continuation_token).oneOf(["string", null]);
+			expect(response.result?.images).toBeTypeOf("object");
+			expect(response.result?.images.length).toBeGreaterThanOrEqual(0);
+		});
+	});
 
-      expect(response.errors).toEqual([]);
-      expect(response.messages).toEqual([]);
-      expect(response.success).toBe(true);
-      expect(response.result).toBeTypeOf('object');
-      expect(response.result!.filename).toBeTypeOf('string');
-      expect(response.result!.id).toBeTypeOf('string');
-      expect(response.result!.meta).toBeTypeOf('object');
-      expect(response.result!.requireSignedURLs).toBe(false);
-      expect(response.result!.uploaded).toBeTypeOf('string');
-      expect(response.result!.variants.length).toBeGreaterThan(0);
-    });
+	describe("Upload Image from file", () => {
+		test("uploadImage From File", async () => {
+			const filePath = path.join(__dirname, "images", "test.png");
+			const response = await cloudflareClient.uploadImageFromFile({
+				filePath,
+				metadata: {},
+			});
 
-    test('uploadImage From File contents (Blob)', async () => {
-      const bytes = readFileSync(path.join(__dirname, 'images', 'test.png'));
-      const response = await cloudflareClient.uploadImageFromFile({
-        file: new Blob([bytes], { type: 'image/png' }),
-        fileName: 'test.png',
-      });
+			expect(response.errors).toEqual([]);
+			expect(response.messages).toEqual([]);
+			expect(response.success).toBe(true);
+			expect(response.result).toBeTypeOf("object");
+			expect(response.result!.filename).toBeTypeOf("string");
+			expect(response.result!.id).toBeTypeOf("string");
+			expect(response.result!.meta).toBeTypeOf("object");
+			expect(response.result!.requireSignedURLs).toBe(false);
+			expect(response.result!.uploaded).toBeTypeOf("string");
+			expect(response.result!.variants.length).toBeGreaterThan(0);
+		});
 
-      expect(response.success).toBe(true);
-      expect(response.result!.id).toBeTypeOf('string');
-    });
+		test("uploadImage From File contents (Blob)", async () => {
+			const bytes = readFileSync(path.join(__dirname, "images", "test.png"));
+			const response = await cloudflareClient.uploadImageFromFile({
+				file: new Blob([bytes], { type: "image/png" }),
+				fileName: "test.png",
+			});
 
-    test('uploadImage From File contents (Uint8Array)', async () => {
-      const bytes = new Uint8Array(
-        readFileSync(path.join(__dirname, 'images', 'test.png'))
-      );
-      const response = await cloudflareClient.uploadImageFromFile({
-        file: bytes,
-      });
+			expect(response.success).toBe(true);
+			expect(response.result!.id).toBeTypeOf("string");
+		});
 
-      expect(response.success).toBe(true);
-    });
+		test("uploadImage From File contents (Uint8Array)", async () => {
+			const bytes = new Uint8Array(
+				readFileSync(path.join(__dirname, "images", "test.png")),
+			);
+			const response = await cloudflareClient.uploadImageFromFile({
+				file: bytes,
+			});
 
-    test('throws when neither file nor filePath is given', async () => {
-      await expect(cloudflareClient.uploadImageFromFile({})).rejects.toThrow(
-        'Either `file` or `filePath` is required'
-      );
-    });
-  });
+			expect(response.success).toBe(true);
+		});
 
-  describe('Update Image', async () => {
-    test('success response', async () => {
-      const response = await cloudflareClient.updateImage(uploadedTestImageId, {
-        metadata: {
-          key: 'value',
-        },
-      });
+		test("throws when neither file nor filePath is given", async () => {
+			await expect(cloudflareClient.uploadImageFromFile({})).rejects.toThrow(
+				"Either `file` or `filePath` is required",
+			);
+		});
+	});
 
-      expect(response.errors).toEqual([]);
-      expect(response.messages).toEqual([]);
-      expect(response.success).toBe(true);
-      expect(response.result).toBeTypeOf('object');
-      expect(response.result!.filename).toBeTypeOf('string');
-      expect(response.result!.id).toBeTypeOf('string');
-      expect(response.result!.meta).toBeTypeOf('object');
-      expect(response.result!.requireSignedURLs).toBe(false);
-      expect(response.result!.uploaded).toBeTypeOf('string');
-      expect(response.result!.variants.length).toBeGreaterThan(0);
-    });
+	describe("Update Image", async () => {
+		test("success response", async () => {
+			const response = await cloudflareClient.updateImage(uploadedTestImageId, {
+				metadata: {
+					key: "value",
+				},
+			});
 
-    test('error response with no image url', async () => {
-      const response = await cloudflareClient.updateImage('not-found', {
-        metadata: {
-          key: 'value',
-        },
-      });
+			expect(response.errors).toEqual([]);
+			expect(response.messages).toEqual([]);
+			expect(response.success).toBe(true);
+			expect(response.result).toBeTypeOf("object");
+			expect(response.result!.filename).toBeTypeOf("string");
+			expect(response.result!.id).toBeTypeOf("string");
+			expect(response.result!.meta).toBeTypeOf("object");
+			expect(response.result!.requireSignedURLs).toBe(false);
+			expect(response.result!.uploaded).toBeTypeOf("string");
+			expect(response.result!.variants.length).toBeGreaterThan(0);
+		});
 
-      expect(response.errors.length).toBeGreaterThan(0);
-    });
-  });
+		test("error response with no image url", async () => {
+			const response = await cloudflareClient.updateImage("not-found", {
+				metadata: {
+					key: "value",
+				},
+			});
 
-  describe('Delete  One Image', async () => {
-    test('success response', async () => {
-      const response = await cloudflareClient.deleteOneImage(
-        uploadedTestImageId
-      );
+			expect(response.errors.length).toBeGreaterThan(0);
+		});
+	});
 
-      expect(response.errors).toEqual([]);
-      expect(response.messages).toEqual([]);
-      expect(response.success).toBe(true);
-    });
+	describe("Delete  One Image", async () => {
+		test("success response", async () => {
+			const response =
+				await cloudflareClient.deleteOneImage(uploadedTestImageId);
 
-    test('error response with no image url', async () => {
-      const response = await cloudflareClient.deleteOneImage('not-found');
+			expect(response.errors).toEqual([]);
+			expect(response.messages).toEqual([]);
+			expect(response.success).toBe(true);
+		});
 
-      expect(response.errors.length).toBeGreaterThan(0);
-    });
-  });
+		test("error response with no image url", async () => {
+			const response = await cloudflareClient.deleteOneImage("not-found");
+
+			expect(response.errors.length).toBeGreaterThan(0);
+		});
+	});
 });
