@@ -58,3 +58,34 @@
   verified the rules fire.
 - **Not done:** pinning actions to commit SHAs (Dependabot plus first-party actions
   is a reasonable trade-off for a small library); CodeQL; coverage upload.
+
+# Decisions — OpenAPI contract tests + API drift detection
+
+- **Source of truth is Cloudflare's own spec** (`cloudflare/api-schemas`, OpenAPI 3.0).
+  We pin only the 7 operations the client calls plus the 29 schemas they reference
+  (~29 KB, key-sorted so diffs show real changes only), not the 27 MB full spec.
+- **Contract tests validate both directions:** requests the client sends (path,
+  method, query params, JSON/multipart body fields) and responses the MSW mocks
+  return (status, content type, JSON schema). They run inside `npm test`, so CI
+  covers them on every PR. Validation uses Ajv with OpenAPI's `nullable`/`discriminator`.
+- **Found and fixed on first run:**
+  - Client bug: `uploadImageFromFile` without `metadata` sent the literal string
+    `"undefined"` as the metadata field. It's now omitted when not given.
+  - Mocks used fake values (`uploaded: "uploaded"`, `variants: ["variant"]`) and
+    returned errors as HTTP 200. Now they use realistic fixtures and 4XX statuses
+    like the real API (`src/mocks/fixtures.ts`).
+- **Verified the tests catch regressions:** an injected form-field typo and an
+  out-of-range `per_page` both fail with precise messages. Known limit: a renamed
+  path that still matches a templated route (`/v1/statistics` looks like
+  `/v1/{image_id}`) passes the contract check; the unit tests catch that case.
+- **Drift = an issue, not an auto-PR.** PRs created with `GITHUB_TOKEN` don't
+  trigger CI, and auto-PRs need an extra repo setting. A single `api-drift` issue
+  with the diff and the contract-test verdict is the lower-attention signal. A
+  hash marker stops repeat comments for the same spec version.
+- **Removed operations don't crash the extractor.** They're recorded under
+  `x-missing-operations`, show up in the diff, and fail the coverage snapshot test.
+- **Drift workflow dry-run:** simulated locally with a mutated upstream spec and a
+  stubbed `gh`. It produced the expected issue, skipped a repeat run, and commented
+  for a new spec version. The real scheduled run can only happen after merge.
+- **Also included:** the release tag format fix (no `v` prefix, matching `1.1.x`),
+  which missed PR #7.

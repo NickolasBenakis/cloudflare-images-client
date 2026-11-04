@@ -160,7 +160,9 @@ class CloudflareImagesClient implements ICloudflareClient {
 			const blobData =
 				image instanceof Blob ? image : new Blob([image as BlobPart]);
 			formData.append("file", blobData, fileName);
-			formData.append("metadata", JSON.stringify(metadata));
+			if (metadata !== undefined) {
+				formData.append("metadata", JSON.stringify(metadata));
+			}
 			formData.append("requireSignedURLs", JSON.stringify(requireSignedURLs));
 
 			const response = await fetch(endpoint, {

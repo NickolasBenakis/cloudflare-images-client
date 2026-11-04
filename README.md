@@ -66,6 +66,16 @@ Contributions are welcome! Please read the contributing guidelines before gettin
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## API contract tests
+
+The tests in [`tests/contract.test.ts`](tests/contract.test.ts) check every request the client sends, and every response the mocks return, against Cloudflare's published [OpenAPI spec](https://github.com/cloudflare/api-schemas). The operations the client uses are pinned in [`openapi/cloudflare-images.json`](openapi/cloudflare-images.json).
+
+- `npm run openapi:update` refreshes the pinned spec from Cloudflare.
+- `npm run test:contract` runs only the contract tests.
+- A weekly workflow ([`api-drift.yml`](.github/workflows/api-drift.yml)) refreshes the spec. If Cloudflare changed anything the client uses, it opens an `api-drift` issue with the diff and whether the contract tests still pass.
+
+When adding a client method, add its endpoint to `OPERATIONS` in [`scripts/openapi-update.mjs`](scripts/openapi-update.mjs), run `npm run openapi:update`, and add a contract test.
+
 ## Releasing
 
 Releases are automated by [`.github/workflows/release.yml`](.github/workflows/release.yml):

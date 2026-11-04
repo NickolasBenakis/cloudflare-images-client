@@ -1,43 +1,13 @@
-import { HttpResponse, http } from "msw";
+import { http } from "msw";
 import { CLOUDFLARE_BASE_URL } from "../../config";
-import type { CloudflareImageResponse } from "../../lib/cloudflareImagesClient";
+import { failure, image, success } from "../fixtures";
 
-export const getImageDetails = http.get<
-	{ accountId: string; imageId: string },
-	CloudflareImageResponse
->(
+export const getImageDetails = http.get(
 	`${CLOUDFLARE_BASE_URL}/accounts/:accountId/images/v1/:imageId`,
-	async ({ params }) => {
-		const { imageId } = params;
-
-		if (imageId === "id") {
-			return HttpResponse.json({
-				errors: [],
-				messages: [],
-				success: true,
-				result: {
-					filename: "string",
-					id: "string",
-					meta: {
-						string: "string",
-					},
-					requireSignedURLs: false,
-					uploaded: "string",
-					variants: ["string"],
-				},
-			});
+	({ params }) => {
+		if (params.imageId === "not-found") {
+			return failure(404, 5404, "Image not found");
 		}
-
-		return HttpResponse.json({
-			errors: [
-				{
-					code: 7003,
-					message: "No image found",
-				},
-			],
-			messages: [],
-			success: false,
-			result: null,
-		});
+		return success(image(String(params.imageId)));
 	},
 );
