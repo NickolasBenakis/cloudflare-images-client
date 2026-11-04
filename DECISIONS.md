@@ -34,7 +34,7 @@
 - **Release trigger = version bump on `main`.** No changesets/release-please and no
   commit-message conventions. If `package.json`'s version isn't on npm, the release
   workflow runs the full CI suite (reused via `workflow_call`), publishes, then
-  creates the `vX.Y.Z` tag + GitHub Release with generated notes. Merging a PR
+  creates the `X.Y.Z` tag (no `v`, matching the existing 1.1.x tags) + GitHub Release with generated notes. Merging a PR
   without a version bump publishes nothing. Prereleases (`x.y.z-beta.n`) go to
   the `next` dist-tag.
 - **npm trusted publishing (OIDC), no `NPM_TOKEN`.** Nothing to leak or rotate, and

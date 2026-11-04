@@ -72,6 +72,6 @@ Releases are automated by [`.github/workflows/release.yml`](.github/workflows/re
 
 1. Bump the version in a PR: `npm version minor --no-git-tag-version` (or `patch` / `major`, or a prerelease such as `1.3.0-beta.1`).
 2. Merge the PR into `main`.
-3. The workflow sees a version that isn't on npm yet, runs the full CI suite, publishes to npm with provenance, and creates the `vX.Y.Z` tag and GitHub Release with generated notes. Prereleases are published under the `next` dist-tag.
+3. The workflow sees a version that isn't on npm yet, runs the full CI suite, publishes to npm with provenance, and creates the `X.Y.Z` tag and GitHub Release with generated notes. Prereleases are published under the `next` dist-tag.
 
 Publishing uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers) (GitHub OIDC), so there is no npm token stored in the repo.
