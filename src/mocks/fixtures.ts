@@ -25,3 +25,11 @@ export function failure(status: number, code: number, message: string) {
 		{ status },
 	);
 }
+
+export function variant(id = "thumbnail") {
+	return {
+		id,
+		options: { fit: "cover", width: 200, height: 200, metadata: "none" },
+		neverRequireSignedURLs: false,
+	};
+}

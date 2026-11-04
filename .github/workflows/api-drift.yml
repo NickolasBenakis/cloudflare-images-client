@@ -38,14 +38,15 @@ jobs:
       - name: Compare with pinned copy
         id: diff
         run: |
-          if git diff --quiet -- openapi/; then
+          # Compare JSON content, not text, so formatting can never look like drift.
+          node scripts/openapi-diff.mjs "$RUNNER_TEMP/pinned.json" openapi/cloudflare-images.json > "$RUNNER_TEMP/diff.md"
+          if grep -qx "No differences." "$RUNNER_TEMP/diff.md"; then
             echo "No drift: pinned spec matches Cloudflare's current spec."
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "changed=true" >> "$GITHUB_OUTPUT"
           echo "hash=$(sha256sum openapi/cloudflare-images.json | cut -c1-16)" >> "$GITHUB_OUTPUT"
-          node scripts/openapi-diff.mjs "$RUNNER_TEMP/pinned.json" openapi/cloudflare-images.json > "$RUNNER_TEMP/diff.md"
           cat "$RUNNER_TEMP/diff.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run contract tests against the new spec

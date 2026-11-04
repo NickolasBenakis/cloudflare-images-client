@@ -56,13 +56,20 @@
 					},
 					"success": {
 						"description": "Whether the API call was successful",
-						"enum": [true],
+						"enum": [
+							true
+						],
 						"example": true,
 						"type": "boolean",
 						"x-auditable": true
 					}
 				},
-				"required": ["success", "errors", "messages", "result"],
+				"required": [
+					"success",
+					"errors",
+					"messages",
+					"result"
+				],
 				"type": "object"
 			},
 			"images_api-response-common-failure": {
@@ -90,19 +97,28 @@
 						"example": []
 					},
 					"result": {
-						"enum": [null],
+						"enum": [
+							null
+						],
 						"nullable": true,
 						"type": "object"
 					},
 					"success": {
 						"description": "Whether the API call was successful",
-						"enum": [false],
+						"enum": [
+							false
+						],
 						"example": false,
 						"type": "boolean",
 						"x-auditable": true
 					}
 				},
-				"required": ["success", "errors", "messages", "result"],
+				"required": [
+					"success",
+					"errors",
+					"messages",
+					"result"
+				],
 				"type": "object"
 			},
 			"images_api-response-single": {
@@ -216,6 +232,72 @@
 				"type": "string",
 				"x-auditable": true
 			},
+			"images_image_direct_upload_request_v2": {
+				"properties": {
+					"creator": {
+						"description": "Can set the creator field with an internal user ID.",
+						"type": "string"
+					},
+					"expiry": {
+						"default": "Now + 30 minutes",
+						"description": "The date after which the upload will not be accepted. Minimum: Now + 2 minutes. Maximum: Now + 6 hours.",
+						"example": "2021-01-02T02:20:00Z",
+						"format": "date-time",
+						"type": "string",
+						"x-auditable": true
+					},
+					"id": {
+						"description": "Optional Image Custom ID. Up to 1024 chars. Can include any number of subpaths, and utf8 characters. Cannot start nor end with a / (forward slash). Cannot be a UUID.",
+						"example": "this/is/my-customid",
+						"maxLength": 1024,
+						"type": "string",
+						"x-auditable": true
+					},
+					"metadata": {
+						"description": "User modifiable key-value store. Can be used for keeping references to another system of record, for managing images.",
+						"type": "object"
+					},
+					"requireSignedURLs": {
+						"default": false,
+						"description": "Indicates whether the image requires a signature token to be accessed.",
+						"example": true,
+						"type": "boolean",
+						"x-auditable": true
+					}
+				},
+				"type": "object"
+			},
+			"images_image_direct_upload_response_v2": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/images_api-response-single"
+					},
+					{
+						"properties": {
+							"result": {
+								"properties": {
+									"id": {
+										"description": "Image unique identifier.",
+										"example": "e22e9e6b-c02b-42fd-c405-6c32af5fe600",
+										"maxLength": 32,
+										"readOnly": true,
+										"type": "string",
+										"x-auditable": true
+									},
+									"uploadURL": {
+										"description": "The URL the unauthenticated upload can be performed to using a single HTTP POST (multipart/form-data) request.",
+										"example": "https://upload.imagedelivery.net/FxUufywByo0m2v3xhKSiU8/e22e9e6b-c02b-42fd-c405-6c32af5fe600",
+										"type": "string",
+										"x-auditable": true
+									}
+								},
+								"type": "object"
+							}
+						},
+						"type": "object"
+					}
+				]
+			},
 			"images_image_filename": {
 				"description": "Image file name.",
 				"example": "logo.png",
@@ -239,6 +321,57 @@
 				"readOnly": true,
 				"type": "string",
 				"x-auditable": true
+			},
+			"images_image_key_name": {
+				"description": "Key name.",
+				"example": "default",
+				"readOnly": true,
+				"type": "string",
+				"x-auditable": true
+			},
+			"images_image_key_response_collection": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/images_api-response-common"
+					},
+					{
+						"properties": {
+							"result": {
+								"$ref": "#/components/schemas/images_image_keys_response"
+							}
+						},
+						"type": "object"
+					}
+				]
+			},
+			"images_image_key_value": {
+				"description": "Key value.",
+				"example": "Oix0bbNaT8Rge9PuyxUBrjI6zrgnsyJ5=",
+				"readOnly": true,
+				"type": "string",
+				"x-auditable": true
+			},
+			"images_image_keys": {
+				"properties": {
+					"name": {
+						"$ref": "#/components/schemas/images_image_key_name"
+					},
+					"value": {
+						"$ref": "#/components/schemas/images_image_key_value"
+					}
+				},
+				"type": "object"
+			},
+			"images_image_keys_response": {
+				"properties": {
+					"keys": {
+						"items": {
+							"$ref": "#/components/schemas/images_image_keys"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object"
 			},
 			"images_image_metadata": {
 				"description": "User modifiable key-value store. Can be used for keeping references to another system of record for managing images. Metadata must not exceed 1024 bytes.",
@@ -323,6 +456,175 @@
 				"type": "string",
 				"x-auditable": true
 			},
+			"images_image_variant_definition": {
+				"properties": {
+					"id": {
+						"$ref": "#/components/schemas/images_image_variant_identifier"
+					},
+					"neverRequireSignedURLs": {
+						"$ref": "#/components/schemas/images_image_variant_neverRequireSignedURLs"
+					},
+					"options": {
+						"$ref": "#/components/schemas/images_image_variant_options"
+					}
+				},
+				"required": [
+					"id",
+					"options"
+				],
+				"type": "object"
+			},
+			"images_image_variant_fit": {
+				"description": "The fit property describes how the width and height dimensions should be interpreted.",
+				"enum": [
+					"scale-down",
+					"contain",
+					"cover",
+					"crop",
+					"pad"
+				],
+				"example": "scale-down",
+				"type": "string",
+				"x-auditable": true
+			},
+			"images_image_variant_height": {
+				"description": "Maximum height in image pixels.",
+				"example": 768,
+				"minimum": 1,
+				"type": "number",
+				"x-auditable": true
+			},
+			"images_image_variant_identifier": {
+				"example": "hero",
+				"maxLength": 99,
+				"pattern": "^[a-zA-Z0-9]+$",
+				"type": "string",
+				"x-auditable": true
+			},
+			"images_image_variant_list_response": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/images_api-response-common"
+					},
+					{
+						"properties": {
+							"result": {
+								"$ref": "#/components/schemas/images_image_variants_response"
+							}
+						},
+						"type": "object"
+					}
+				]
+			},
+			"images_image_variant_neverRequireSignedURLs": {
+				"default": false,
+				"description": "Indicates whether the variant can access an image without a signature, regardless of image access control.",
+				"example": true,
+				"type": "boolean",
+				"x-auditable": true
+			},
+			"images_image_variant_options": {
+				"description": "Allows you to define image resizing sizes for different use cases.",
+				"properties": {
+					"fit": {
+						"$ref": "#/components/schemas/images_image_variant_fit"
+					},
+					"height": {
+						"$ref": "#/components/schemas/images_image_variant_height"
+					},
+					"metadata": {
+						"$ref": "#/components/schemas/images_image_variant_schemas_metadata"
+					},
+					"width": {
+						"$ref": "#/components/schemas/images_image_variant_width"
+					}
+				},
+				"required": [
+					"fit",
+					"metadata",
+					"width",
+					"height"
+				],
+				"type": "object"
+			},
+			"images_image_variant_patch_request": {
+				"properties": {
+					"neverRequireSignedURLs": {
+						"$ref": "#/components/schemas/images_image_variant_neverRequireSignedURLs"
+					},
+					"options": {
+						"$ref": "#/components/schemas/images_image_variant_options"
+					}
+				},
+				"required": [
+					"options"
+				],
+				"type": "object"
+			},
+			"images_image_variant_public_request": {
+				"properties": {
+					"hero": {
+						"properties": {
+							"id": {
+								"$ref": "#/components/schemas/images_image_variant_identifier"
+							},
+							"neverRequireSignedURLs": {
+								"$ref": "#/components/schemas/images_image_variant_neverRequireSignedURLs"
+							},
+							"options": {
+								"$ref": "#/components/schemas/images_image_variant_options"
+							}
+						},
+						"required": [
+							"id",
+							"options"
+						],
+						"type": "object"
+					}
+				},
+				"type": "object"
+			},
+			"images_image_variant_response": {
+				"properties": {
+					"variant": {
+						"$ref": "#/components/schemas/images_image_variant_definition"
+					}
+				},
+				"type": "object"
+			},
+			"images_image_variant_schemas_metadata": {
+				"description": "What EXIF data should be preserved in the output image.",
+				"enum": [
+					"keep",
+					"copyright",
+					"none"
+				],
+				"example": "none",
+				"type": "string",
+				"x-auditable": true
+			},
+			"images_image_variant_simple_response": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/images_api-response-single"
+					},
+					{
+						"properties": {
+							"result": {
+								"$ref": "#/components/schemas/images_image_variant_response"
+							}
+						},
+						"type": "object"
+					}
+				]
+			},
+			"images_image_variant_width": {
+				"description": "Maximum width in image pixels.",
+				"example": 1366,
+				"minimum": 1,
+				"type": "number",
+				"x-auditable": true
+			},
 			"images_image_variants": {
 				"description": "Object specifying available variants for an image.",
 				"example": [
@@ -345,6 +647,14 @@
 				},
 				"readOnly": true,
 				"type": "array"
+			},
+			"images_image_variants_response": {
+				"properties": {
+					"variants": {
+						"$ref": "#/components/schemas/images_image_variant_public_request"
+					}
+				},
+				"type": "object"
 			},
 			"images_images_list_continuation_token": {
 				"description": "Continuation token to fetch next page. Passed as a query param when requesting List V2 api endpoint.",
@@ -440,7 +750,10 @@
 							"x-auditable": true
 						}
 					},
-					"required": ["code", "message"],
+					"required": [
+						"code",
+						"message"
+					],
 					"type": "object",
 					"uniqueItems": true
 				},
@@ -518,11 +831,80 @@
 					}
 				],
 				"summary": "Upload an image",
-				"tags": ["Cloudflare Images"],
-				"x-api-token-group": ["Images Write"],
+				"tags": [
+					"Cloudflare Images"
+				],
+				"x-api-token-group": [
+					"Images Write"
+				],
 				"x-fern-availability": "generally-available",
 				"x-fern-sdk-group-name": "images",
 				"x-fern-sdk-method-name": "create"
+			}
+		},
+		"/accounts/{account_id}/images/v1/keys": {
+			"get": {
+				"description": "List your CF Images signing keys.",
+				"operationId": "cloudflare-images-keys-list-signing-keys",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "account_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_account_identifier"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/images_image_key_response_collection"
+								}
+							}
+						},
+						"description": "List Signing Keys response"
+					},
+					"4XX": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/images_image_key_response_collection"
+										},
+										{
+											"$ref": "#/components/schemas/images_api-response-common-failure"
+										}
+									]
+								}
+							}
+						},
+						"description": "List Signing Keys response failure"
+					}
+				},
+				"security": [
+					{
+						"api_token": []
+					},
+					{
+						"api_email": [],
+						"api_key": []
+					}
+				],
+				"summary": "List Signing Keys",
+				"tags": [
+					"Cloudflare Images Keys"
+				],
+				"x-api-token-group": [
+					"Images Read",
+					"Images Write"
+				],
+				"x-fern-availability": "generally-available",
+				"x-fern-sdk-group-name": "images.keys",
+				"x-fern-sdk-method-name": "list"
 			}
 		},
 		"/accounts/{account_id}/images/v1/stats": {
@@ -578,11 +960,377 @@
 					}
 				],
 				"summary": "Images usage statistics",
-				"tags": ["Cloudflare Images"],
-				"x-api-token-group": ["Images Read", "Images Write"],
+				"tags": [
+					"Cloudflare Images"
+				],
+				"x-api-token-group": [
+					"Images Read",
+					"Images Write"
+				],
 				"x-fern-availability": "generally-available",
 				"x-fern-sdk-group-name": "images",
 				"x-fern-sdk-method-name": "stats"
+			}
+		},
+		"/accounts/{account_id}/images/v1/variants": {
+			"get": {
+				"description": "List existing CF Images variants.",
+				"operationId": "cloudflare-images-variants-list-variants",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "account_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_account_identifier"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/images_image_variant_list_response"
+								}
+							}
+						},
+						"description": "List variants response"
+					},
+					"4XX": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/images_image_variant_list_response"
+										},
+										{
+											"$ref": "#/components/schemas/images_api-response-common-failure"
+										}
+									]
+								}
+							}
+						},
+						"description": "List variants response failure"
+					}
+				},
+				"security": [
+					{
+						"api_token": []
+					},
+					{
+						"api_email": [],
+						"api_key": []
+					}
+				],
+				"summary": "List variants",
+				"tags": [
+					"Cloudflare Images Variants"
+				],
+				"x-api-token-group": [
+					"Images Read",
+					"Images Write"
+				],
+				"x-fern-availability": "generally-available",
+				"x-fern-sdk-group-name": "images.variants",
+				"x-fern-sdk-method-name": "list"
+			},
+			"post": {
+				"description": "Create a CF Images variant that allows you to resize images for different use cases.",
+				"operationId": "cloudflare-images-variants-create-a-variant",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "account_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_account_identifier"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/images_image_variant_definition"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/images_image_variant_simple_response"
+								}
+							}
+						},
+						"description": "Create a variant response"
+					},
+					"4XX": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/images_image_variant_simple_response"
+										},
+										{
+											"$ref": "#/components/schemas/images_api-response-common-failure"
+										}
+									]
+								}
+							}
+						},
+						"description": "Create a variant response failure"
+					}
+				},
+				"security": [
+					{
+						"api_token": []
+					},
+					{
+						"api_email": [],
+						"api_key": []
+					}
+				],
+				"summary": "Create a variant",
+				"tags": [
+					"Cloudflare Images Variants"
+				],
+				"x-api-token-group": [
+					"Images Write"
+				],
+				"x-fern-availability": "generally-available",
+				"x-fern-sdk-group-name": "images.variants",
+				"x-fern-sdk-method-name": "create"
+			}
+		},
+		"/accounts/{account_id}/images/v1/variants/{variant_id}": {
+			"delete": {
+				"description": "Delete a CF Images variant. This will purge the cache for all images associated with the variant.",
+				"operationId": "cloudflare-images-variants-delete-a-variant",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "variant_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_image_variant_identifier"
+						}
+					},
+					{
+						"in": "path",
+						"name": "account_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_account_identifier"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/images_deleted_response"
+								}
+							}
+						},
+						"description": "Delete a variant response"
+					},
+					"4XX": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/images_deleted_response"
+										},
+										{
+											"$ref": "#/components/schemas/images_api-response-common-failure"
+										}
+									]
+								}
+							}
+						},
+						"description": "Delete a variant response failure"
+					}
+				},
+				"security": [
+					{
+						"api_token": []
+					},
+					{
+						"api_email": [],
+						"api_key": []
+					}
+				],
+				"summary": "Delete a variant",
+				"tags": [
+					"Cloudflare Images Variants"
+				],
+				"x-api-token-group": [
+					"Images Write"
+				],
+				"x-fern-availability": "generally-available",
+				"x-fern-sdk-group-name": "images.variants",
+				"x-fern-sdk-method-name": "delete",
+				"x-forge-require-confirmation": "This operation will delete this variant."
+			},
+			"get": {
+				"description": "Fetch details for a CF Images variant.",
+				"operationId": "cloudflare-images-variants-variant-details",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "variant_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_image_variant_identifier"
+						}
+					},
+					{
+						"in": "path",
+						"name": "account_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_account_identifier"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/images_image_variant_simple_response"
+								}
+							}
+						},
+						"description": "Variant details response"
+					},
+					"4XX": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/images_image_variant_simple_response"
+										},
+										{
+											"$ref": "#/components/schemas/images_api-response-common-failure"
+										}
+									]
+								}
+							}
+						},
+						"description": "Variant details response failure"
+					}
+				},
+				"security": [
+					{
+						"api_token": []
+					},
+					{
+						"api_email": [],
+						"api_key": []
+					}
+				],
+				"summary": "Variant details",
+				"tags": [
+					"Cloudflare Images Variants"
+				],
+				"x-api-token-group": [
+					"Images Read",
+					"Images Write"
+				],
+				"x-fern-availability": "generally-available",
+				"x-fern-sdk-group-name": "images.variants",
+				"x-fern-sdk-method-name": "get"
+			},
+			"patch": {
+				"description": "Update a CF Images variant. This will purge the cache for all images associated with the variant.",
+				"operationId": "cloudflare-images-variants-update-a-variant",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "variant_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_image_variant_identifier"
+						}
+					},
+					{
+						"in": "path",
+						"name": "account_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_account_identifier"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/images_image_variant_patch_request"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/images_image_variant_simple_response"
+								}
+							}
+						},
+						"description": "Update a variant response"
+					},
+					"4XX": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/images_image_variant_simple_response"
+										},
+										{
+											"$ref": "#/components/schemas/images_api-response-common-failure"
+										}
+									]
+								}
+							}
+						},
+						"description": "Update a variant response failure"
+					}
+				},
+				"security": [
+					{
+						"api_token": []
+					},
+					{
+						"api_email": [],
+						"api_key": []
+					}
+				],
+				"summary": "Update a variant",
+				"tags": [
+					"Cloudflare Images Variants"
+				],
+				"x-api-token-group": [
+					"Images Write"
+				],
+				"x-fern-availability": "generally-available",
+				"x-fern-sdk-group-name": "images.variants",
+				"x-fern-sdk-method-name": "edit"
 			}
 		},
 		"/accounts/{account_id}/images/v1/{image_id}": {
@@ -646,8 +1394,12 @@
 					}
 				],
 				"summary": "Delete image",
-				"tags": ["Cloudflare Images"],
-				"x-api-token-group": ["Images Write"],
+				"tags": [
+					"Cloudflare Images"
+				],
+				"x-api-token-group": [
+					"Images Write"
+				],
 				"x-fern-availability": "generally-available",
 				"x-fern-sdk-group-name": "images",
 				"x-fern-sdk-method-name": "delete",
@@ -713,8 +1465,13 @@
 					}
 				],
 				"summary": "Image details",
-				"tags": ["Cloudflare Images"],
-				"x-api-token-group": ["Images Read", "Images Write"],
+				"tags": [
+					"Cloudflare Images"
+				],
+				"x-api-token-group": [
+					"Images Read",
+					"Images Write"
+				],
 				"x-fern-availability": "generally-available",
 				"x-fern-sdk-group-name": "images",
 				"x-fern-sdk-method-name": "get"
@@ -789,8 +1546,12 @@
 					}
 				],
 				"summary": "Update image",
-				"tags": ["Cloudflare Images"],
-				"x-api-token-group": ["Images Write"],
+				"tags": [
+					"Cloudflare Images"
+				],
+				"x-api-token-group": [
+					"Images Write"
+				],
 				"x-fern-availability": "generally-available",
 				"x-fern-sdk-group-name": "images",
 				"x-fern-sdk-method-name": "edit"
@@ -858,8 +1619,13 @@
 					}
 				],
 				"summary": "Download image",
-				"tags": ["Cloudflare Images"],
-				"x-api-token-group": ["Images Read", "Images Write"],
+				"tags": [
+					"Cloudflare Images"
+				],
+				"x-api-token-group": [
+					"Images Read",
+					"Images Write"
+				],
 				"x-fern-availability": "generally-available",
 				"x-fern-sdk-group-name": "images",
 				"x-fern-sdk-method-name": "get-blob"
@@ -902,7 +1668,10 @@
 						"schema": {
 							"default": "desc",
 							"description": "Sorting order by upload time",
-							"enum": ["asc", "desc"],
+							"enum": [
+								"asc",
+								"desc"
+							],
 							"type": "string"
 						}
 					},
@@ -998,11 +1767,90 @@
 					}
 				],
 				"summary": "List images V2",
-				"tags": ["Cloudflare Images"],
-				"x-api-token-group": ["Images Read", "Images Write"],
+				"tags": [
+					"Cloudflare Images"
+				],
+				"x-api-token-group": [
+					"Images Read",
+					"Images Write"
+				],
 				"x-fern-availability": "generally-available",
 				"x-fern-sdk-group-name": "images",
 				"x-fern-sdk-method-name": "list"
+			}
+		},
+		"/accounts/{account_id}/images/v2/direct_upload": {
+			"post": {
+				"description": "Direct uploads allow users to upload images without API keys. A common use case are web apps, client-side applications, or mobile devices where users upload content directly to Cloudflare Images. This method creates a draft record for a future image. It returns an upload URL and an image identifier. To verify if the image itself has been uploaded, send an image details request (accounts/:account_identifier/images/v1/:identifier), and check that the `draft: true` property is not present.",
+				"operationId": "cloudflare-images-create-authenticated-direct-upload-url-v-2",
+				"parameters": [
+					{
+						"in": "path",
+						"name": "account_id",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/images_account_identifier"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"$ref": "#/components/schemas/images_image_direct_upload_request_v2"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/images_image_direct_upload_response_v2"
+								}
+							}
+						},
+						"description": "Create authenticated direct upload URL V2 response"
+					},
+					"4XX": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/images_image_direct_upload_response_v2"
+										},
+										{
+											"$ref": "#/components/schemas/images_api-response-common-failure"
+										}
+									]
+								}
+							}
+						},
+						"description": "Create authenticated direct upload URL V2 response failure"
+					}
+				},
+				"security": [
+					{
+						"api_token": []
+					},
+					{
+						"api_email": [],
+						"api_key": []
+					}
+				],
+				"summary": "Create authenticated direct upload URL V2",
+				"tags": [
+					"Cloudflare Images"
+				],
+				"x-api-token-group": [
+					"Images Write"
+				],
+				"x-fern-availability": "generally-available",
+				"x-fern-sdk-group-name": "images",
+				"x-fern-sdk-method-name": "direct-upload"
 			}
 		}
 	}
