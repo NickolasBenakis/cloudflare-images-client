@@ -129,12 +129,12 @@ function expectNoViolations() {
 }
 
 describe(`live Cloudflare Images API (${RUN})`, () => {
-	test("credentials work and stats match the spec", async () => {
+	test("credentials work and stats match the spec", async (ctx) => {
 		const res = await client.getImageStatistics();
-		expect(res.errors).toEqual([]);
-		expect(res.success).toBe(true);
-		expect(typeof res.result.count.allowed).toBe("number");
 		expectNoViolations();
+		// 5403 = account isn't subscribed to Images storage (free plan).
+		skipIfPlanGated(res, "getImageStatistics", ctx);
+		expect(typeof res.result.count.allowed).toBe("number");
 	});
 
 	test("listVariants and listSigningKeys", async (ctx) => {
