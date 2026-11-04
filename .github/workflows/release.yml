@@ -55,7 +55,7 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   publish:
-    name: Publish v${{ needs.version.outputs.version }}
+    name: Publish ${{ needs.version.outputs.version }}
     needs: [version, ci]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -86,8 +86,8 @@ jobs:
         run: |
           PRERELEASE=""
           if [[ "$VERSION" == *-* ]]; then PRERELEASE="--prerelease"; fi
-          gh release create "v$VERSION" \
+          gh release create "$VERSION" \
             --target "$GITHUB_SHA" \
-            --title "v$VERSION" \
+            --title "$VERSION" \
             --generate-notes \
             $PRERELEASE
