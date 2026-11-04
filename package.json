@@ -33,9 +33,11 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"coverage": "vitest run --coverage",
-		"format": "biome format --write ./src ./scripts",
+		"lint": "biome ci .",
+		"format": "biome check --write .",
 		"check:package": "node scripts/smoke.mjs && publint && attw --pack .",
-		"prepublishOnly": "npm run build && npm test && npm run check:package"
+		"check:workers": "esbuild dist/index.js --bundle --platform=browser --conditions=workerd,worker,browser --format=esm --log-level=warning > /dev/null",
+		"prepublishOnly": "npm run build && npm test && npm run check:package && npm run check:workers"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/cli": "^0.18.5",
@@ -43,6 +45,7 @@
 		"@types/node": "^26.6.6",
 		"@vitest/coverage-v8": "^5.1.0",
 		"dotenv": "^18.0.9",
+		"esbuild": "^0.28.2",
 		"msw": "^3.0.3",
 		"publint": "^0.3.25",
 		"tsup": "^9.0.0",
